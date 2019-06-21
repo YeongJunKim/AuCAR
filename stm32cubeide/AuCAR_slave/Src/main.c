@@ -48,6 +48,8 @@
 
 /* USER CODE BEGIN PV */
 
+  uint8_t sendData[5] = {1,2,3,4,5};
+  uint8_t rxData[5] = {0,};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -117,7 +119,6 @@ int main(void)
   uint32_t current_tick = 0;
   uint32_t past_tick = 0;
 
-  uint8_t sendData[5] = {1,2,3,4,5};
 
   TIM1->CCR1 = 100;
   TIM1->CCR2 = 300;
@@ -133,6 +134,8 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
+	  HAL_UART_Receive_IT(&huart2, rxData, 1);
+
 	  current_tick = HAL_GetTick();
 
 	  if(current_tick - past_tick >= 2)
@@ -140,6 +143,8 @@ int main(void)
 		  HAL_UART_Transmit(&huart2, sendData, sizeof(sendData), 0xFFFF);
 		  past_tick = current_tick;
 	  }
+
+	  //uart rx tx callback check;
   }
   /* USER CODE END 3 */
 }

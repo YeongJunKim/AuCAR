@@ -35,11 +35,13 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 		g_counters.usart2TxCounter++;
 	}
 }
+extern uint8_t rxData[5];
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(huart->Instance == USART2)
 	{
 		g_counters.usart2RxCounter++;
 
+	    HAL_UART_Receive_IT(&huart2, rxData, 1);
 	}
 }
