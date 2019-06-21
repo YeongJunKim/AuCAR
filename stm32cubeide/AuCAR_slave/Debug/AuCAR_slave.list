@@ -10178,7 +10178,7 @@ void MX_USART2_UART_Init(void)
  8003d90:	4b10      	ldr	r3, [pc, #64]	; (8003dd4 <MX_USART2_UART_Init+0x48>)
  8003d92:	4a11      	ldr	r2, [pc, #68]	; (8003dd8 <MX_USART2_UART_Init+0x4c>)
  8003d94:	601a      	str	r2, [r3, #0]
-  huart2.Init.BaudRate = 1500000;
+  huart2.Init.BaudRate = 1000000;
  8003d96:	4b0f      	ldr	r3, [pc, #60]	; (8003dd4 <MX_USART2_UART_Init+0x48>)
  8003d98:	4a10      	ldr	r2, [pc, #64]	; (8003ddc <MX_USART2_UART_Init+0x50>)
  8003d9a:	605a      	str	r2, [r3, #4]
@@ -10222,7 +10222,7 @@ void MX_USART2_UART_Init(void)
  8003dd2:	bd80      	pop	{r7, pc}
  8003dd4:	200002a0 	.word	0x200002a0
  8003dd8:	40004400 	.word	0x40004400
- 8003ddc:	0016e360 	.word	0x0016e360
+ 8003ddc:	000f4240 	.word	0x000f4240
 
 08003de0 <HAL_UART_MspInit>:
 

@@ -11,6 +11,11 @@
 #include "usart.h"
 #include "gpio.h"
 
+#include "interrupt_handler.h"
+#include "data_struct.h"
+
+COUNTERS g_counters;
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim->Instance == TIM6)
@@ -25,7 +30,64 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
+	if(huart->Instance == USART1)
+	{
+		g_counters.usart1TxCounter++;
+	}
+	else if(huart->Instance == USART2)
+	{
+		g_counters.usart2TxCounter++;
+	}
+	else if(huart->Instance == USART3)
+	{
+		g_counters.usart3TxCounter++;
+	}
+	else if(huart->Instance == UART4)
+	{
+		g_counters.usart4TxCounter++;
+	}
+	else if(huart->Instance == UART5)
+	{
+		g_counters.usart5TxCounter++;
+	}
+	else if(huart->Instance == USART6)
+	{
+		g_counters.usart6TxCounter++;
+	}
 }
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
+	if(huart->Instance == USART1)
+	{
+		g_counters.usart1RxCounter++;
+	}
+	else if(huart->Instance == USART2)
+	{
+		g_counters.usart2RxCounter++;
+	}
+	else if(huart->Instance == USART3)
+	{
+		g_counters.usart3RxCounter++;
+	}
+	else if(huart->Instance == UART4)
+	{
+		g_counters.usart4RxCounter++;
+	}
+	else if(huart->Instance == UART5)
+	{
+		g_counters.usart5RxCounter++;
+	}
+	else if(huart->Instance == USART6)
+	{
+		g_counters.usart6RxCounter++;
+	}
+}
+
+__weak void COL_CtoC_GetUartData(void)
+{
+
+}
+__weak void COL_CtoC_GetUartData(void)
+{
+
 }
