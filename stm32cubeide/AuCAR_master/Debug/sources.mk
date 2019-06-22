@@ -31,4 +31,5 @@ Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src \
 Middlewares/ST/STM32_USB_Device_Library/Core/Src \
 Src \
 Startup \
+library/src \
 
