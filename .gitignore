@@ -33,3 +33,5 @@
 
 /.metadata
 */.metadata
+*.launch
+Debug/
