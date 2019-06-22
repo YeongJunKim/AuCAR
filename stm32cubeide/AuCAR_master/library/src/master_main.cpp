@@ -7,13 +7,8 @@
 
 #include "master_main.h"
 #include "frame_handler.h"
-
-QUEUE_ST g_usart1_tx_queue;
-QUEUE_ST g_usart1_rx_queue;
-QUEUE_ST g_usart2_tx_queue;
-QUEUE_ST g_usart2_rx_queue;
-QUEUE_ST g_usart3_tx_queue;
-QUEUE_ST g_usart3_rx_queue;
+#include "hardware.h"
+#include "main.h"
 
 dataFrame_ST g_frame1;
 dataFrame_ST g_frame2;
@@ -22,20 +17,16 @@ dataFrame_ST g_frame4;
 dataFrame_ST g_frame5;
 dataFrame_ST g_frame6;
 
+extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart3;
+
+Hardware __uart1(&huart1);
+Hardware __uart3(&huart3);
+
 void init(void)
 {
-	u8_init_queue(&g_usart1_tx_queue);
-	u8_init_queue(&g_usart1_rx_queue);
-	u8_init_queue(&g_usart2_rx_queue);
-	u8_init_queue(&g_usart2_rx_queue);
-	u8_init_queue(&g_usart3_rx_queue);
-	u8_init_queue(&g_usart3_rx_queue);
-	frame_init(&g_frame1);
-	frame_init(&g_frame2);
-	frame_init(&g_frame3);
-	frame_init(&g_frame4);
-	frame_init(&g_frame5);
-	frame_init(&g_frame6);
+	__uart1.init();
+	__uart3.init();
 }
 
 void run(void)
