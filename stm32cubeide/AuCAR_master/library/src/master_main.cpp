@@ -5,32 +5,53 @@
  *      Author: colson
  */
 
+#include "main.h"
+
+#include "AuCAR_conf.h"
 #include "master_main.h"
 #include "frame_handler.h"
 #include "hardware.h"
-#include "main.h"
+#include "stateLed.h"
+#include "stateMachine.h"
 
-dataFrame_ST g_frame1;
-dataFrame_ST g_frame2;
-dataFrame_ST g_frame3;
-dataFrame_ST g_frame4;
-dataFrame_ST g_frame5;
-dataFrame_ST g_frame6;
+#include "usart.h"
+#include "tim.h"
 
-extern UART_HandleTypeDef huart1;
-extern UART_HandleTypeDef huart3;
+#if LED_TYPE == C3_LED
+StateLed __led1(GPIOA, GPIO_PIN_4, 100);
+StateLed __led2(GPIOA, GPIO_PIN_5, 500);
+StateLed __led3(GPIOA, GPIO_PIN_6, 100);
+StateLed __led4(GPIOA, GPIO_PIN_7, 500);
+#else
+StateLed __led1(GPIOC, GPIO_PIN_4, 100);
+StateLed __led2(GPIOC, GPIO_PIN_5, 500);
+StateLed __led3(GPIOB, GPIO_PIN_0, 100);
+StateLed __led4(GPIOB, GPIO_PIN_1, 500);
+#endif
 
 Hardware __uart1(&huart1);
 Hardware __uart3(&huart3);
 
+StateMachine __machine_uart1;
+StateMachine __machine_uart3;
+
+
 void init(void)
 {
+	  HAL_TIM_Base_Start_IT(&htim6);
+	  HAL_TIM_Base_Start_IT(&htim7);
+
 	__uart1.init();
 	__uart3.init();
 }
 
 void run(void)
 {
+	__led1.run();
+	__led2.run();
+	__led3.run();
+	__led4.run();
+
 	/*
 	 * check queue (dequeue)
 	 * usart -> queue -> frame
@@ -39,6 +60,17 @@ void run(void)
 	 * USART3 - To C2 -
 	 * USB_DEVICE_FS - TODO (for ROS) -
 	 * */
+	int read_data;
+	read_data = __uart1.read();
+
+	if(read_data == -1)
+	{
+
+	}
+	else
+	{
+
+	}
 
 	/*
 	 * state machine
@@ -55,18 +87,13 @@ void run(void)
 	 * */
 }
 
-/*
- * state led
- *  */
-void timer_1s(void)
-{
 
-}
 
 /*
  * motor control
  * */
-void timer_10ms(void)
+__weak void timer_10ms(void)
 {
 
 }
+

@@ -14,11 +14,17 @@ extern "C" {
 
 #include "interrupt_handler.h"
 
+#define C1 0x01
+#define C2 0x02
+#define C3 0x03
+
+
+
 
 void init(void);
 void run(void);
 
-void timer_1s(void);
+
 void timer_10ms(void);
 
 
