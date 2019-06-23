@@ -16,20 +16,6 @@
 
 COUNTERS g_counters;
 
-extern QUEUE_ST g_usart1_tx_queue;
-extern QUEUE_ST g_usart1_rx_queue;
-extern QUEUE_ST g_usart2_tx_queue;
-extern QUEUE_ST g_usart2_rx_queue;
-extern QUEUE_ST g_usart3_tx_queue;
-extern QUEUE_ST g_usart3_rx_queue;
-
-extern dataFrame_ST g_frame1;
-extern dataFrame_ST g_frame2;
-extern dataFrame_ST g_frame3;
-extern dataFrame_ST g_frame4;
-extern dataFrame_ST g_frame5;
-extern dataFrame_ST g_frame6;
-
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim->Instance == TIM6)
@@ -42,6 +28,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	}
 }
 
+
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
 	if(huart->Instance == USART1)
@@ -51,6 +38,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 	else if(huart->Instance == USART2)
 	{
 		g_counters.usart2TxCounter++;
+		  //nh.getHardware()->flush();
 	}
 	else if(huart->Instance == USART3)
 	{
@@ -78,6 +66,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	else if(huart->Instance == USART2)
 	{
 		g_counters.usart2RxCounter++;
+		//nh.getHardware()->reset_rbuf();
 	}
 	else if(huart->Instance == USART3)
 	{

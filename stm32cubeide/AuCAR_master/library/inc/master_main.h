@@ -14,10 +14,6 @@ extern "C" {
 
 #include "interrupt_handler.h"
 
-#define C1 0x01
-#define C2 0x02
-#define C3 0x03
-
 
 
 

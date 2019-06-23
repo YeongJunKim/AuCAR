@@ -22,15 +22,22 @@ typedef struct _stateMachine{
 }stateMachine_ST;
 
 
-
 class StateMachine {
 protected:
 	stateMachine_ST info[3];
 
 
 public:
-	StateMachine(){};
-
+	StateMachine(){
+		for(int i = 0 ; i < 3; i ++)
+		{
+			info[i].state = 0;
+			info[i].cmd = 0;
+			info[i].length = 0;
+			info[i].data = NULL;
+			info[i].checksum = 0;
+		}
+	};
 	/*
 	 * state machine
 	 * */
