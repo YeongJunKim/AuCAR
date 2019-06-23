@@ -7,6 +7,7 @@
 
 #include <hardware.h>
 #include <stateLed.h>
+#include "vector"
 #include "main.h"
 
 #include "AuCAR_conf.h"
@@ -71,27 +72,27 @@ void run(void) {
 		if(cnt++ >= 100) {
 			break;
 		}
-		if(read = -1)
+		if(read == -1)
 			break;
 	}
-	cnt = 0
+	cnt = 0;
 	while (1) {
 		read = g_hardware_uart3.read();
 
 		if(cnt++ >= 100) {
 			break;
 		}
-		if(read = -1)
+		if(read == -1)
 			break;
 	}
-	cnt = 0
+	cnt = 0;
 	while (1) {
 		read = g_hardware_uart3.read();
 
 		if(cnt++ >= 100) {
 			break;
 		}
-		if(read = -1)
+		if(read == -1)
 			break;
 	}
 
