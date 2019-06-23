@@ -109,9 +109,6 @@ int main(void)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_TIM_Base_Start_IT(&htim6);
-  HAL_TIM_Base_Start_IT(&htim7);
-
   init();
 
   /* USER CODE END 2 */
@@ -123,23 +120,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-//	    uint16_t len = strlen((const char*)UserRxBufferFS);
-//
-//	    if(len > 0)
-//	    {
-//	      strncpy((char *)UserTxBufferFS, (const char*)UserRxBufferFS, len);
-//	      strcat((char *)UserTxBufferFS, "\r\n");
-//	      CDC_Transmit_FS((uint8_t*)UserTxBufferFS, strlen((const char*)UserTxBufferFS));
-//	      memset(UserRxBufferFS, 0, sizeof(UserRxBufferFS));
-//	      memset(UserTxBufferFS, 0, sizeof(UserTxBufferFS));
-//	    }
-//
-//
-//	    uint8_t sendData = "HELLO WORLD\r\n";
-//
-//	    CDC_Transmit_FS(sendData, sizeof(sendData));
-
-	    HAL_Delay(500);
+	  run();
   }
   /* USER CODE END 3 */
 }
