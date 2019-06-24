@@ -20,11 +20,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if(htim->Instance == TIM6)
 	{
-		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0|GPIO_PIN_1);
 	}
 	else if(htim->Instance == TIM7)
 	{
-		HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_4|GPIO_PIN_5);
 	}
 }
 
