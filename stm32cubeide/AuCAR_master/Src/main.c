@@ -21,6 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "can.h"
+#include "dma.h"
 #include "tim.h"
 #include "usart.h"
 #include "usb_device.h"
@@ -29,6 +30,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "usbd_cdc_if.h"
+#include "master_main.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -95,6 +97,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_CAN1_Init();
   MX_UART4_Init();
   MX_USART1_UART_Init();
@@ -103,11 +106,11 @@ int main(void)
   MX_USART6_UART_Init();
   MX_TIM6_Init();
   MX_TIM7_Init();
-  MX_USB_DEVICE_Init();
+  //MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_TIM_Base_Start_IT(&htim6);
-  HAL_TIM_Base_Start_IT(&htim7);
+  init();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -117,23 +120,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-//	    uint16_t len = strlen((const char*)UserRxBufferFS);
-//
-//	    if(len > 0)
-//	    {
-//	      strncpy((char *)UserTxBufferFS, (const char*)UserRxBufferFS, len);
-//	      strcat((char *)UserTxBufferFS, "\r\n");
-//	      CDC_Transmit_FS((uint8_t*)UserTxBufferFS, strlen((const char*)UserTxBufferFS));
-//	      memset(UserRxBufferFS, 0, sizeof(UserRxBufferFS));
-//	      memset(UserTxBufferFS, 0, sizeof(UserTxBufferFS));
-//	    }
-//
-//
-//	    uint8_t sendData = "HELLO WORLD\r\n";
-//
-//	    CDC_Transmit_FS(sendData, sizeof(sendData));
-
-	    HAL_Delay(500);
+	  run();
   }
   /* USER CODE END 3 */
 }
