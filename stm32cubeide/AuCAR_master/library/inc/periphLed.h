@@ -5,12 +5,12 @@
  *      Author: colson
  */
 
-#ifndef INC_STATELED_H_
-#define INC_STATELED_H_
+#ifndef INC_PERIPHLED_H_
+#define INC_PERIPHLED_H_
 
 #include "main.h"
 
-class StateLed {
+class PeriphLED {
 protected:
 	GPIO_TypeDef *GPIOx;			/**< GPIOx*/
 	uint16_t GPIO_Pin;				/**< GPIOx_Pin*/
@@ -21,8 +21,8 @@ protected:
 
 public:
 
-	StateLed(){	}
-	StateLed(GPIO_TypeDef *GPIOx_, uint16_t GPIO_Pin_, uint16_t period_):
+	PeriphLED(){	}
+	PeriphLED(GPIO_TypeDef *GPIOx_, uint16_t GPIO_Pin_, uint16_t period_):
 		GPIOx(GPIOx_), GPIO_Pin(GPIO_Pin_), PinState(GPIO_PIN_RESET), period(period_){
 	}
 
@@ -47,4 +47,4 @@ public:
 
 
 
-#endif /* INC_STATELED_H_ */
+#endif /* INC_PERIPHLED_H_ */

@@ -5,14 +5,14 @@
  *      Author: colson
  */
 
-#ifndef INC_HARDWARE_H_
-#define INC_HARDWARE_H_
+#ifndef INC_PERIPHUSART_H_
+#define INC_PERIPHUSART_H_
 
 #include "main.h"
 #include "string.h"
 
 
-class Hardware {
+class PeriphUsart {
   protected:
     UART_HandleTypeDef *huart;
 
@@ -26,10 +26,10 @@ class Hardware {
     uint32_t twind, tfind;
 
   public:
-    Hardware(){
+    PeriphUsart(){
     }
 
-    Hardware(UART_HandleTypeDef *huart_):
+    PeriphUsart(UART_HandleTypeDef *huart_):
       huart(huart_), rind(0), twind(0), tfind(0){
     }
 
@@ -92,4 +92,4 @@ class Hardware {
 
 
 
-#endif /* INC_HARDWARE_H_ */
+#endif /* INC_PERIPHUSART_H_ */
