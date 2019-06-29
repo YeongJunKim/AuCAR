@@ -16,16 +16,6 @@
 
 COUNTERS g_counters;
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	if(htim->Instance == TIM6)
-	{
-	}
-	else if(htim->Instance == TIM7)
-	{
-	}
-}
-
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
