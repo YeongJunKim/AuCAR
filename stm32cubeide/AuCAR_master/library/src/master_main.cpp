@@ -5,7 +5,7 @@
  *      Author: colson
  */
 
-#include <periphLed.h>
+#include <periphGpio.h>
 #include <periphusart.h>
 #include <periphMotor.h>
 #include "vector"
@@ -19,23 +19,36 @@
 #include "usart.h"
 #include "tim.h"
 
+#if LOCAL_DEVICE == C1
+
+#elif LOCAL_DEVICE == C2
+
+#elif LOCAL_DEVICE == C3
+PeriphGPIO __c1nrst(nrst_c1_GPIO_Port, nrst_c1_Pin, 200);
+PeriphGPIO __c2nrst(nrst_c2_GPIO_Port, nrst_c2_Pin, 200);
+
+PeriphGPIO __c1power(power_c1_GPIO_Port, power_c1_Pin, 200);
+PeriphGPIO __c2power(power_c2_GPIO_Port, power_c2_Pin, 200);
+
+PeriphGPIO __c1boot(boot_c1_GPIO_Port, boot_c1_Pin, 200);
+PeriphGPIO __c2boot(boot_c2_GPIO_Port, boot_c2_Pin, 200);
+
+PeriphUsart __usart1(&huart1);
+PeriphUsart __usart2(&huart2);
+PeriphUsart __usart3(&huart3);
+
 #if LED_TYPE == C3_LED
-PeriphLED __led1(GPIOA, GPIO_PIN_4, 100);
-PeriphLED __led2(GPIOA, GPIO_PIN_5, 500);
-PeriphLED __led3(GPIOA, GPIO_PIN_6, 100);
-PeriphLED __led4(GPIOA, GPIO_PIN_7, 500);
+PeriphGPIO __led1(GPIOA, GPIO_PIN_4, 100);
+PeriphGPIO __led2(GPIOA, GPIO_PIN_5, 500);
+PeriphGPIO __led3(GPIOA, GPIO_PIN_6, 100);
+PeriphGPIO __led4(GPIOA, GPIO_PIN_7, 500);
 #else
-PeriphLED __led1(GPIOC, GPIO_PIN_4, 100);
-PeriphLED __led2(GPIOC, GPIO_PIN_5, 500);
-PeriphLED __led3(GPIOB, GPIO_PIN_0, 100);
-PeriphLED __led4(GPIOB, GPIO_PIN_1, 500);
+PeriphGPIO __led1(GPIOC, GPIO_PIN_4, 100);
+PeriphGPIO __led2(GPIOC, GPIO_PIN_5, 500);
+PeriphGPIO __led3(GPIOB, GPIO_PIN_0, 100);
+PeriphGPIO __led4(GPIOB, GPIO_PIN_1, 500);
 #endif
-
-PeriphUsart g_hardware_uart1(&huart1);
-PeriphUsart g_hardware_uart2(&huart2);
-PeriphUsart g_hardware_uart3(&huart3);
-
-
+#endif
 
 StateMachine g_stateMachines;
 
@@ -46,10 +59,18 @@ void init(void) {
 	HAL_TIM_Base_Start_IT(&htim6);
 	HAL_TIM_Base_Start_IT(&htim7);
 
-	g_hardware_uart1.init();
-	g_hardware_uart3.init();
+	__c1boot.set();
+	__c2boot.set();
 
-	g_hardware_uart2.init();
+	__c1nrst.set();
+	__c2nrst.set();
+
+	__c1power.set();
+	__c2power.set();
+
+	__usart1.init();
+	__usart2.init();
+	__usart3.init();
 }
 
 void run(void) {
@@ -57,6 +78,14 @@ void run(void) {
 	__led2.run();
 	__led3.run();
 	__led4.run();
+
+	//__c1boot.run();
+	//__c2boot.run();
+	//__c1nrst.run();
+	//__c2nrst.run();
+	//__c1power.run();
+	//__c2power.run();
+
 	/*
 	 * check queue (dequeue)
 	 * usart -> queue -> frame
@@ -69,7 +98,7 @@ void run(void) {
 	uint8_t cnt = 0;
 
 	while (1) {
-		read = g_hardware_uart1.read();
+		read = __usart1.read();
 
 		if(cnt++ >= 100) {
 			break;
@@ -79,7 +108,7 @@ void run(void) {
 	}
 	cnt = 0;
 	while (1) {
-		read = g_hardware_uart3.read();
+		read = __usart3.read();
 
 		if(cnt++ >= 100) {
 			break;
@@ -89,7 +118,7 @@ void run(void) {
 	}
 	cnt = 0;
 	while (1) {
-		read = g_hardware_uart3.read();
+		read = __usart3.read();
 
 		if(cnt++ >= 100) {
 			break;

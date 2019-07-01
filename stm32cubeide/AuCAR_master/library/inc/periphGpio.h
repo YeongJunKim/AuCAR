@@ -5,12 +5,12 @@
  *      Author: colson
  */
 
-#ifndef INC_PERIPHLED_H_
-#define INC_PERIPHLED_H_
+#ifndef INC_PERIPHGPIO_H_
+#define INC_PERIPHGPIO_H_
 
 #include "main.h"
 
-class PeriphLED {
+class PeriphGPIO {
 protected:
 	GPIO_TypeDef *GPIOx;			/**< GPIOx*/
 	uint16_t GPIO_Pin;				/**< GPIOx_Pin*/
@@ -21,18 +21,22 @@ protected:
 
 public:
 
-	PeriphLED(){	}
-	PeriphLED(GPIO_TypeDef *GPIOx_, uint16_t GPIO_Pin_, uint16_t period_):
+	PeriphGPIO(){	}
+	PeriphGPIO(GPIO_TypeDef *GPIOx_, uint16_t GPIO_Pin_, uint16_t period_):
 		GPIOx(GPIOx_), GPIO_Pin(GPIO_Pin_), PinState(GPIO_PIN_RESET), period(period_){
 	}
 
 	void init(){reset();}
 
-	void reset(void){period = 1000;}
+	void re(void){period = 1000;}
 
 	void setPeriod(uint16_t period_){period = period_;}
 
 	void toggle(void){HAL_GPIO_TogglePin(GPIOx, GPIO_Pin);}
+
+	void set(void){HAL_GPIO_WritePin(GPIOx, GPIO_Pin, GPIO_PIN_SET);}
+
+	void reset(void){HAL_GPIO_WritePin(GPIOx, GPIO_Pin, GPIO_PIN_RESET);}
 
 	void run(void){
 		nowtick = HAL_GetTick();
@@ -47,4 +51,4 @@ public:
 
 
 
-#endif /* INC_PERIPHLED_H_ */
+#endif /* INC_PERIPHGPIO_H_ */
