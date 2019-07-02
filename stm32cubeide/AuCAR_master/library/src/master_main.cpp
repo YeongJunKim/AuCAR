@@ -24,6 +24,7 @@
 #elif LOCAL_DEVICE == C2
 
 #elif LOCAL_DEVICE == C3
+
 PeriphGPIO __c1nrst(nrst_c1_GPIO_Port, nrst_c1_Pin, 200);
 PeriphGPIO __c2nrst(nrst_c2_GPIO_Port, nrst_c2_Pin, 200);
 
@@ -33,9 +34,17 @@ PeriphGPIO __c2power(power_c2_GPIO_Port, power_c2_Pin, 200);
 PeriphGPIO __c1boot(boot_c1_GPIO_Port, boot_c1_Pin, 200);
 PeriphGPIO __c2boot(boot_c2_GPIO_Port, boot_c2_Pin, 200);
 
+PeriphGPIO __id0(id_0_GPIO_Port, id_0_Pin, 0);
+PeriphGPIO __id1(id_1_GPIO_Port, id_1_Pin, 0);
+PeriphGPIO __id2(id_2_GPIO_Port, id_2_Pin, 0);
+PeriphGPIO __id3(id_3_GPIO_Port, id_3_Pin, 0);
+
+
 PeriphUsart __usart1(&huart1);
 PeriphUsart __usart2(&huart2);
 PeriphUsart __usart3(&huart3);
+
+
 
 #if LED_TYPE == C3_LED
 PeriphGPIO __led1(GPIOA, GPIO_PIN_4, 100);
@@ -62,11 +71,11 @@ void init(void) {
 	__c1boot.set();
 	__c2boot.set();
 
-	__c1nrst.set();
-	__c2nrst.set();
+	__c1nrst.reset();
+	__c2nrst.reset();
 
-	__c1power.set();
-	__c2power.set();
+	__c1power.reset();
+	__c2power.reset();
 
 	__usart1.init();
 	__usart2.init();
@@ -78,6 +87,15 @@ void run(void) {
 	__led2.run();
 	__led3.run();
 	__led4.run();
+
+	if(__id0.read() == GPIO_PIN_SET)
+		__c1power.reset();
+	else
+		__c1power.set();
+	if(__id1.read() == GPIO_PIN_SET)
+		__c2power.reset();
+	else
+		__c2power.set();
 
 	//__c1boot.run();
 	//__c2boot.run();

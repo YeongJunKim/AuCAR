@@ -38,9 +38,14 @@ public:
 
 	void reset(void){HAL_GPIO_WritePin(GPIOx, GPIO_Pin, GPIO_PIN_RESET);}
 
+	GPIO_PinState read(void){return HAL_GPIO_ReadPin(GPIOx, GPIO_Pin);}
+
 	void run(void){
 		nowtick = HAL_GetTick();
-		if(nowtick - pasttick > period)
+		if(period == 0)
+		{
+		}
+		else if(nowtick - pasttick > period)
 		{
 			toggle();
 			pasttick = nowtick;

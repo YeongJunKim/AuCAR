@@ -26,7 +26,6 @@ extern "C"{
 #define true 1
 #define false 0
 
-
 typedef struct _u_queue {
 	uint8_t queue[UART_RX_MAX_QUEUE];
 	int front;
@@ -34,6 +33,7 @@ typedef struct _u_queue {
 	int count;
 	int max_count;
 } QUEUE_ST;
+
 
 typedef struct _c_queue {
 	// TODO CanRxMsgTypeDef queue[CAN_RX_MAX_QUEUE];
@@ -53,16 +53,9 @@ BOOL u8_is_empty(QUEUE_ST * str);
 BOOL u8_is_full(QUEUE_ST * str);
 BOOL u8_enqueue(QUEUE_ST *str, uint8_t value);
 BOOL u8_dequeue(QUEUE_ST *str, uint8_t* value);
-/*
- * for CanRxMsgTypeDef arr
- *
- */
 
-void cT_init_queue(C_QUEUE_ST *str);
-BOOL cT_is_empty(C_QUEUE_ST * str);
-BOOL cT_is_full(C_QUEUE_ST * str);
-// TODO BOOL cT_enqueue(C_Q_Struct *str, CanRxMsgTypeDef* value);
-// TPDP BOOL cT_dequeue(C_Q_Struct *str, CanRxMsgTypeDef* tx_msg);
+
+
 
 #ifdef __cplusplus
 }
