@@ -13,7 +13,6 @@
 
 #include "AuCAR_conf.h"
 #include "master_main.h"
-#include "frame_handler.h"
 #include "stateMachine.h"
 
 #include "usart.h"
@@ -25,14 +24,14 @@
 
 #elif LOCAL_DEVICE == C3
 
-PeriphGPIO __c1nrst(nrst_c1_GPIO_Port, nrst_c1_Pin, 200);
-PeriphGPIO __c2nrst(nrst_c2_GPIO_Port, nrst_c2_Pin, 200);
+PeriphGPIO __c1nrst(nrst_c1_GPIO_Port, nrst_c1_Pin, 1000);
+PeriphGPIO __c2nrst(nrst_c2_GPIO_Port, nrst_c2_Pin, 1000);
 
-PeriphGPIO __c1power(power_c1_GPIO_Port, power_c1_Pin, 200);
-PeriphGPIO __c2power(power_c2_GPIO_Port, power_c2_Pin, 200);
+PeriphGPIO __c1power(power_c1_GPIO_Port, power_c1_Pin, 1000);
+PeriphGPIO __c2power(power_c2_GPIO_Port, power_c2_Pin, 1000);
 
-PeriphGPIO __c1boot(boot_c1_GPIO_Port, boot_c1_Pin, 200);
-PeriphGPIO __c2boot(boot_c2_GPIO_Port, boot_c2_Pin, 200);
+PeriphGPIO __c1boot(boot_c1_GPIO_Port, boot_c1_Pin, 1000);
+PeriphGPIO __c2boot(boot_c2_GPIO_Port, boot_c2_Pin, 1000);
 
 PeriphGPIO __id0(id_0_GPIO_Port, id_0_Pin, 0);
 PeriphGPIO __id1(id_1_GPIO_Port, id_1_Pin, 0);
@@ -43,8 +42,6 @@ PeriphGPIO __id3(id_3_GPIO_Port, id_3_Pin, 0);
 PeriphUsart __usart1(&huart1);
 PeriphUsart __usart2(&huart2);
 PeriphUsart __usart3(&huart3);
-
-
 
 #if LED_TYPE == C3_LED
 PeriphGPIO __led1(GPIOA, GPIO_PIN_4, 100);
@@ -82,27 +79,56 @@ void init(void) {
 	__usart3.init();
 }
 
+
+
 void run(void) {
-	__led1.run();
-	__led2.run();
-	__led3.run();
-	__led4.run();
 
-	if(__id0.read() == GPIO_PIN_SET)
-		__c1power.reset();
-	else
-		__c1power.set();
-	if(__id1.read() == GPIO_PIN_SET)
-		__c2power.reset();
-	else
-		__c2power.set();
+	io_read();
+	led_run();
 
-	//__c1boot.run();
-	//__c2boot.run();
-	//__c1nrst.run();
-	//__c2nrst.run();
-	//__c1power.run();
-	//__c2power.run();
+	// circuit_logic_test();
+
+	int data = 0;
+	uint8_t read = 0;
+	while(1)
+	{
+		data = __usart2.read();
+
+		if(data < 0)
+			break;
+		else
+		{
+			read = (uint8_t)data;
+			//TODO
+			//state machine
+		}
+	}
+
+	while(1)
+	{
+		data = __usart1.read();
+		if(data < 0)
+			break;
+		else
+		{
+			read = (uint8_t)data;
+			//TODO
+			//state machine
+		}
+	}
+
+	while(1)
+	{
+		data = __usart3.read();
+		if(data < 0)
+			break;
+		else
+		{
+			read = (uint8_t)data;
+			//TODO
+			//state machine
+		}
+	}
 
 	/*
 	 * check queue (dequeue)
@@ -112,38 +138,7 @@ void run(void) {
 	 * USART3 - To C2 -
 	 * USB_DEVICE_FS - TODO (for ROS) -
 	 * */
-	int read;
-	uint8_t cnt = 0;
 
-	while (1) {
-		read = __usart1.read();
-
-		if(cnt++ >= 100) {
-			break;
-		}
-		if(read == -1)
-			break;
-	}
-	cnt = 0;
-	while (1) {
-		read = __usart3.read();
-
-		if(cnt++ >= 100) {
-			break;
-		}
-		if(read == -1)
-			break;
-	}
-	cnt = 0;
-	while (1) {
-		read = __usart3.read();
-
-		if(cnt++ >= 100) {
-			break;
-		}
-		if(read == -1)
-			break;
-	}
 
 	/*
 	 * state machine
@@ -161,12 +156,86 @@ void run(void) {
 }
 
 
+void io_read(void)
+{
+	if(__id0.read() == GPIO_PIN_SET)
+		__c1power.reset();
+	else
+		__c1power.set();
 
-/*
- * motor control
- * */
-__weak void timer_10ms(void)
+	if(__id1.read() == GPIO_PIN_SET)
+		__c2power.reset();
+	else
+		__c2power.set();
+
+	if(__id2.read() == GPIO_PIN_SET)
+	{}
+	else
+	{}
+	if(__id3.read() == GPIO_PIN_SET)
+	{}
+	else
+	{}
+}
+
+void led_run(void)
+{
+	__led1.run();
+	__led2.run();
+	__led3.run();
+	__led4.run();
+}
+
+
+void circuit_logic_test(void)
+{
+	__c1boot.run();
+	__c2boot.run();
+	__c1nrst.run();
+	__c2nrst.run();
+	__c1power.run();
+	__c2power.run();
+}
+
+void timer_1s(void)
 {
 
+}
+
+void timer_10ms(void)
+{
+
+}
+
+void uart_tx_callback(UART_HandleTypeDef *huart)
+{
+	if(huart->Instance == USART1)
+	{
+		__usart1.flush();
+	}
+	else if(huart->Instance == USART2)
+	{
+		__usart2.flush();
+	}
+	else if(huart->Instance == USART3)
+	{
+		__usart3.flush();
+	}
+}
+
+void uart_rx_callback(UART_HandleTypeDef *huart)
+{
+	if(huart->Instance == USART1)
+	{
+		__usart1.reset_rbuf();
+	}
+	else if(huart->Instance == USART2)
+	{
+		__usart2.reset_rbuf();
+	}
+	else if(huart->Instance == USART3)
+	{
+		__usart3.reset_rbuf();
+	}
 }
 

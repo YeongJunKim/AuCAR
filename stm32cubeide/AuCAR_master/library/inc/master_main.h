@@ -21,8 +21,14 @@ void init(void);
 void run(void);
 
 
+void io_read(void);
+void led_run(void);
+void circuit_logic_test(void);
+void timer_1s(void);
 void timer_10ms(void);
 
+void uart_tx_callback(UART_HandleTypeDef *huart);
+void uart_rx_callback(UART_HandleTypeDef *huart);
 
 #ifdef __cplusplus
 }
