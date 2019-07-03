@@ -14,6 +14,12 @@ extern "C" {
 
 #include "interrupt_handler.h"
 
+typedef struct _debug{
+	int data[100];
+	uint8_t read[100];
+	int count1;
+	int count2;
+}BUGCATCHER;
 
 
 

@@ -60,6 +60,10 @@ StateMachine g_stateMachines;
 
 uint8_t g_readData;
 
+
+BUGCATCHER debug = {0,};
+
+
 void init(void) {
 	/* peripheral init */
 	HAL_TIM_Base_Start_IT(&htim6);
@@ -78,7 +82,6 @@ void init(void) {
 	__usart2.init();
 	__usart3.init();
 }
-
 
 
 void run(void) {
@@ -101,6 +104,13 @@ void run(void) {
 			read = (uint8_t)data;
 			//TODO
 			//state machine
+		}
+		debug.data[debug.count1++] = data;
+		debug.read[debug.count2++] = read;
+
+		if(debug.count1 == 100){
+			debug.count1 = 0;
+			debug.count2 = 0;
 		}
 	}
 
@@ -169,13 +179,13 @@ void io_read(void)
 		__c2power.set();
 
 	if(__id2.read() == GPIO_PIN_SET)
-	{}
+	{							}
 	else
-	{}
+	{							}
 	if(__id3.read() == GPIO_PIN_SET)
-	{}
+	{							}
 	else
-	{}
+	{							}
 }
 
 void led_run(void)
@@ -199,12 +209,17 @@ void circuit_logic_test(void)
 
 void timer_1s(void)
 {
+	static uint8_t data[10] = {0,};
+	for(int i = 0 ; i < 10 ; i++)
+	{
+		data[i]++;
+	}
 
+	__usart2.write(data, 1);
 }
 
 void timer_10ms(void)
 {
-
 }
 
 void uart_tx_callback(UART_HandleTypeDef *huart)
