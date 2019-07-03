@@ -35,24 +35,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-/*
- * #define max485_dir_Pin GPIO_PIN_2
-#define max485_dir_GPIO_Port GPIOB
-#define max485_dir_alt_Pin GPIO_PIN_10
-#define max485_dir_alt_GPIO_Port GPIOB
-#define nrst_c1_Pin GPIO_PIN_8
-#define nrst_c1_GPIO_Port GPIOC
-#define nrst_c2_Pin GPIO_PIN_9
-#define nrst_c2_GPIO_Port GPIOC
-#define power_c1_Pin GPIO_PIN_12
-#define power_c1_GPIO_Port GPIOC
-#define power_c2_Pin GPIO_PIN_2
-#define power_c2_GPIO_Port GPIOD
-#define boot_c1_Pin GPIO_PIN_3
-#define boot_c1_GPIO_Port GPIOB
-#define boot_c2_Pin GPIO_PIN_4
-#define boot_c2_GPIO_Port GPIOB
- * */
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
