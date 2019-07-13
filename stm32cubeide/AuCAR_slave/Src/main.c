@@ -20,6 +20,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -92,6 +93,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_TIM1_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
@@ -116,6 +118,11 @@ int main(void)
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
   HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_4);
 
+  HAL_TIM_Encoder_Start(&htim3,TIM_CHANNEL_ALL);
+  HAL_TIM_Encoder_Start(&htim4,TIM_CHANNEL_ALL);
+  HAL_TIM_Encoder_Start(&htim5,TIM_CHANNEL_ALL);
+  HAL_TIM_Encoder_Start(&htim8,TIM_CHANNEL_ALL);
+
   uint32_t current_tick = 0;
   uint32_t past_tick = 0;
 
@@ -124,6 +131,8 @@ int main(void)
   TIM1->CCR2 = 300;
   TIM1->CCR3 = 700;
   TIM1->CCR4 = 900;
+
+  init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -134,16 +143,16 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	  HAL_UART_Receive_IT(&huart2, rxData, 1);
-
-	  current_tick = HAL_GetTick();
-
-	  if(current_tick - past_tick >= 2)
-	  {
-		  HAL_UART_Transmit(&huart2, sendData, sizeof(sendData), 0xFFFF);
-		  past_tick = current_tick;
-	  }
-
+//	  HAL_UART_Receive_IT(&huart2, rxData, 1);
+//
+//	  current_tick = HAL_GetTick();
+//
+//	  if(current_tick - past_tick >= 2)
+//	  {
+//		  HAL_UART_Transmit(&huart2, sendData, sizeof(sendData), 0xFFFF);
+//		  past_tick = current_tick;
+//	  }
+	  run();
 	  //uart rx tx callback check;
   }
   /* USER CODE END 3 */
