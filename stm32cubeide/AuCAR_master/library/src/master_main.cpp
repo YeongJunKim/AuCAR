@@ -38,11 +38,16 @@ PeriphGPIO __id1(id_1_GPIO_Port, id_1_Pin, 0);
 PeriphGPIO __id2(id_2_GPIO_Port, id_2_Pin, 0);
 PeriphGPIO __id3(id_3_GPIO_Port, id_3_Pin, 0);
 
-
 PeriphUsart __usart1(&huart1);
 PeriphUsart __usart2(&huart2);
 PeriphUsart __usart3(&huart3);
 
+<<<<<<< HEAD
+
+
+
+=======
+>>>>>>> 81510a211205f93c2719dfe64e89d9934d1910ca
 #if LED_TYPE == C3_LED
 PeriphGPIO __led1(GPIOA, GPIO_PIN_4, 100);
 PeriphGPIO __led2(GPIOA, GPIO_PIN_5, 500);
@@ -58,7 +63,6 @@ PeriphGPIO __led4(GPIOB, GPIO_PIN_1, 500);
 
 StateMachine g_stateMachines;
 
-uint8_t g_readData;
 
 
 BUGCATCHER debug = {0,};
@@ -91,6 +95,23 @@ void run(void) {
 
 	// circuit_logic_test();
 
+<<<<<<< HEAD
+	std::vector<uint8_t> data0;
+	std::vector<uint8_t> data1;
+
+
+	while (1) {
+		read = __usart1.read();
+
+
+		if(cnt++ >= 100) {
+			//break;
+		}
+		if(read == -1)
+			break;
+		else
+			data0.push_back(read);
+=======
 	int data = 0;
 	uint8_t read = 0;
 	while(1)
@@ -125,8 +146,18 @@ void run(void) {
 			//TODO
 			//state machine
 		}
+>>>>>>> 81510a211205f93c2719dfe64e89d9934d1910ca
 	}
 
+<<<<<<< HEAD
+		if(cnt++ >= 100) {
+			//break;
+		}
+		if(read == -1)
+			break;
+		else
+			data1.push_back(read);
+=======
 	while(1)
 	{
 		data = __usart3.read();
@@ -138,7 +169,9 @@ void run(void) {
 			//TODO
 			//state machine
 		}
+>>>>>>> 81510a211205f93c2719dfe64e89d9934d1910ca
 	}
+	cnt = 0;
 
 	/*
 	 * check queue (dequeue)
@@ -153,6 +186,8 @@ void run(void) {
 	/*
 	 * state machine
 	 * */
+
+
 
 	/*
 	 * enqueue data
