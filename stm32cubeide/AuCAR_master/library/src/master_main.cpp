@@ -19,9 +19,15 @@
 #include "tim.h"
 
 #if LOCAL_DEVICE == C1
-
+PeriphLED __led1(GPIOC, GPIO_PIN_0, 100);
+PeriphLED __led2(GPIOC, GPIO_PIN_1, 500);
+PeriphLED __led3(GPIOC, GPIO_PIN_2, 100);
+PeriphLED __led4(GPIOC, GPIO_PIN_3, 500);
 #elif LOCAL_DEVICE == C2
-
+PeriphLED __led1(GPIOC, GPIO_PIN_0, 100);
+PeriphLED __led2(GPIOC, GPIO_PIN_1, 500);
+PeriphLED __led3(GPIOC, GPIO_PIN_2, 100);
+PeriphLED __led4(GPIOC, GPIO_PIN_3, 500);
 #elif LOCAL_DEVICE == C3
 
 PeriphGPIO __c1nrst(nrst_c1_GPIO_Port, nrst_c1_Pin, 1000);
@@ -81,6 +87,8 @@ void init(void) {
 	__usart3.init();
 }
 
+uint32_t nowtick = 0;
+uint32_t pasttick = 0;
 
 void run(void) {
 
@@ -88,12 +96,9 @@ void run(void) {
 	led_run();
 
 	// circuit_logic_test();
+
 	int cnt = 0;
-	uint8_t read = 0;
-
-	std::vector<uint8_t> data0;
-	std::vector<uint8_t> data1;
-
+	int read = 0;
 
 	while(1)
 	{
@@ -105,7 +110,7 @@ void run(void) {
 		if(read == -1)
 			break;
 		else
-			g_stateMachines.data_push_back(0, read);
+			g_stateMachines.data_push_back(0, (uint8_t)read);
 	}
 	cnt = 0;
 	while(1)
@@ -118,10 +123,19 @@ void run(void) {
 		if(read == -1)
 			break;
 		else
-			g_stateMachines.data_push_back(1, read);
+			g_stateMachines.data_push_back(1, (uint8_t)read);
 	}
 	cnt = 0;
-
+	/* test sender */
+	nowtick = HAL_GetTick();
+	if(nowtick - pasttick > 100)
+	{
+		uint8_t sendData[10] = {0xFF, 0xFF, 0x02, 0x00, 0x03, 0x00, 0x01, 0x00, 0x05, 0x05};
+		__usart1.write(sendData, sizeof(sendData));
+		__usart3.write(sendData, sizeof(sendData));
+		pasttick = nowtick;
+	}
+	/* test sender end */
 	/*
 	 * check queue (dequeue)
 	 * usart -> queue -> frame
@@ -142,6 +156,8 @@ void run(void) {
 	 * enqueue data
 	 * frame -> queue -> usart
 	 * */
+
+
 
 	/*
 	 * local functions

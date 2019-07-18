@@ -34,6 +34,8 @@ typedef struct _counters {
 	uint32_t usart4ErrorCounter;
 	uint32_t usart5ErrorCounter;
 	uint32_t usart6ErrorCounter;
+
+	uint32_t stateMachineCpltCounter[3];
 } COUNTERS;
 
 typedef struct _flags{

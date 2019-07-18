@@ -7,8 +7,10 @@
 
 #include "stateMachine.h"
 
+#include "data_struct.h"
 
 
+extern COUNTERS g_counters;
 
 
 void StateMachine::run(void) {
@@ -88,6 +90,7 @@ void StateMachine::machine(int index, uint8_t data)
 	else if(str->state == 0x08)
 	{
 		str->data[str->count++] = data;
+		str->checksum += data;
 		if(str->count == str->length)
 		{
 			str->state = 0x09;
@@ -96,11 +99,19 @@ void StateMachine::machine(int index, uint8_t data)
 	else if(str->state == 0x09)
 	{
 		//checksum//
+		if(str->checksum == data)
+		{
+			//correct//
+			g_counters.stateMachineCpltCounter[index]++;
 
-
+		}
 		//add task//
 
 
+		//end task//
+		free(str->data);
+		str->checksum = 0x00;
+		str->state = 0x00;
 	}
 }
 

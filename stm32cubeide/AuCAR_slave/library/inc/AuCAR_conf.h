@@ -20,21 +20,22 @@
 
 #else
 #if LOCAL_DEVICE == C1
-#define C1_LED			0x01
-#define LED_TYPE C1_LED
+
 #elif LOCAL_DEVICE == C2
-#define C2_LED			0x02
-#define LED_TYPE C2_LED
+
 #elif LOCAL_DEVICE == C3
-#define C3_LED 			0x03
-#define C3_LED_ALT 		0x04
+
+#endif
+#endif
+
+
+
+#define C3_LED 			0x01
+#define C3_LED_ALT 		0x02
 #define LED_TYPE C3_LED
-#define C3_MAX_DIR 		0x05
-#define C3_MAX_DIR_ALT 	0x06
+
+#define C3_MAX_DIR 		0x01
+#define C3_MAX_DIR_ALT 	0x02
 #define MAX_DIR_TYPE C3_MAX_DIR
-#endif
-#endif
-
-
 
 #endif /* INC_AUCAR_CONF_H_ */

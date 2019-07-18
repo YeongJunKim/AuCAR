@@ -16,13 +16,14 @@
 #include "AuCAR_conf.h"
 
 typedef struct _stateMachine{
-	uint8_t 	state;
+	int 	state;
 	uint16_t 	cmd1;
 	uint16_t 	cmd2;
 	uint16_t 	length;
 	uint8_t 	*data;
 	uint8_t 	checksum;
 	uint16_t 	count;
+
 }stateMachine_ST;
 
 
