@@ -19,9 +19,15 @@
 #include "tim.h"
 
 #if LOCAL_DEVICE == C1
-
+PeriphLED __led1(GPIOC, GPIO_PIN_0, 100);
+PeriphLED __led2(GPIOC, GPIO_PIN_1, 500);
+PeriphLED __led3(GPIOC, GPIO_PIN_2, 100);
+PeriphLED __led4(GPIOC, GPIO_PIN_3, 500);
 #elif LOCAL_DEVICE == C2
-
+PeriphLED __led1(GPIOC, GPIO_PIN_0, 100);
+PeriphLED __led2(GPIOC, GPIO_PIN_1, 500);
+PeriphLED __led3(GPIOC, GPIO_PIN_2, 100);
+PeriphLED __led4(GPIOC, GPIO_PIN_3, 500);
 #elif LOCAL_DEVICE == C3
 
 PeriphGPIO __c1nrst(nrst_c1_GPIO_Port, nrst_c1_Pin, 1000);
@@ -37,7 +43,6 @@ PeriphGPIO __id0(id_0_GPIO_Port, id_0_Pin, 0);
 PeriphGPIO __id1(id_1_GPIO_Port, id_1_Pin, 0);
 PeriphGPIO __id2(id_2_GPIO_Port, id_2_Pin, 0);
 PeriphGPIO __id3(id_3_GPIO_Port, id_3_Pin, 0);
-
 
 PeriphUsart __usart1(&huart1);
 PeriphUsart __usart2(&huart2);
@@ -58,7 +63,6 @@ PeriphGPIO __led4(GPIOB, GPIO_PIN_1, 500);
 
 StateMachine g_stateMachines;
 
-uint8_t g_readData;
 
 
 BUGCATCHER debug = {0,};
@@ -83,6 +87,8 @@ void init(void) {
 	__usart3.init();
 }
 
+uint32_t nowtick = 0;
+uint32_t pasttick = 0;
 
 void run(void) {
 
@@ -91,55 +97,45 @@ void run(void) {
 
 	// circuit_logic_test();
 
-	int data = 0;
-	uint8_t read = 0;
-	while(1)
-	{
-		data = __usart2.read();
-
-		if(data < 0)
-			break;
-		else
-		{
-			read = (uint8_t)data;
-			//TODO
-			//state machine
-		}
-		debug.data[debug.count1++] = data;
-		debug.read[debug.count2++] = read;
-
-		if(debug.count1 == 100){
-			debug.count1 = 0;
-			debug.count2 = 0;
-		}
-	}
+	int cnt = 0;
+	int read = 0;
 
 	while(1)
 	{
-		data = __usart1.read();
-		if(data < 0)
+		read = __usart1.read();
+
+		if(cnt++ >= 100) {
+			//break;
+		}
+		if(read == -1)
 			break;
 		else
-		{
-			read = (uint8_t)data;
-			//TODO
-			//state machine
-		}
+			g_stateMachines.data_push_back(0, (uint8_t)read);
 	}
-
+	cnt = 0;
 	while(1)
 	{
-		data = __usart3.read();
-		if(data < 0)
+		read = __usart3.read();
+
+		if(cnt++ >= 100) {
+			//break;
+		}
+		if(read == -1)
 			break;
 		else
-		{
-			read = (uint8_t)data;
-			//TODO
-			//state machine
-		}
+			g_stateMachines.data_push_back(1, (uint8_t)read);
 	}
-
+	cnt = 0;
+	/* test sender */
+	nowtick = HAL_GetTick();
+	if(nowtick - pasttick > 100)
+	{
+		uint8_t sendData[10] = {0xFF, 0xFF, 0x02, 0x00, 0x03, 0x00, 0x01, 0x00, 0x05, 0x05};
+		__usart1.write(sendData, sizeof(sendData));
+		__usart3.write(sendData, sizeof(sendData));
+		pasttick = nowtick;
+	}
+	/* test sender end */
 	/*
 	 * check queue (dequeue)
 	 * usart -> queue -> frame
@@ -154,10 +150,14 @@ void run(void) {
 	 * state machine
 	 * */
 
+	g_stateMachines.run();
+
 	/*
 	 * enqueue data
 	 * frame -> queue -> usart
 	 * */
+
+
 
 	/*
 	 * local functions

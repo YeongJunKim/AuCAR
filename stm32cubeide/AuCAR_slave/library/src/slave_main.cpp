@@ -20,59 +20,108 @@
 #include "usart.h"
 #include "tim.h"
 
-#if LED_TYPE == C1_LED
+#if LOCAL_DEVICE == C1
 PeriphLED __led1(GPIOC, GPIO_PIN_0, 100);
 PeriphLED __led2(GPIOC, GPIO_PIN_1, 500);
 PeriphLED __led3(GPIOC, GPIO_PIN_2, 100);
 PeriphLED __led4(GPIOC, GPIO_PIN_3, 500);
-#elif LED_TYPE == C2_LED
+PeriphUsart __usart2(&huart2);
+#elif LOCAL_DEVICE == C2
 PeriphLED __led1(GPIOC, GPIO_PIN_0, 100);
 PeriphLED __led2(GPIOC, GPIO_PIN_1, 500);
 PeriphLED __led3(GPIOC, GPIO_PIN_2, 100);
 PeriphLED __led4(GPIOC, GPIO_PIN_3, 500);
-#elif LED_TYPE == C3_LED
-PeriphLED __led1(GPIOA, GPIO_PIN_4, 100);
-PeriphLED __led2(GPIOA, GPIO_PIN_5, 500);
-PeriphLED __led3(GPIOA, GPIO_PIN_6, 100);
-PeriphLED __led4(GPIOA, GPIO_PIN_7, 500);
-#elif LED_TYPE == C3_LED_ALT
-PeriphLED __led1(GPIOC, GPIO_PIN_4, 100);
-PeriphLED __led2(GPIOC, GPIO_PIN_5, 500);
-PeriphLED __led3(GPIOB, GPIO_PIN_0, 100);
-PeriphLED __led4(GPIOB, GPIO_PIN_1, 500);
+PeriphUsart __usart2(&huart2);
+#elif LOCAL_DEVICE == C3
+
+PeriphGPIO __c1nrst(nrst_c1_GPIO_Port, nrst_c1_Pin, 1000);
+PeriphGPIO __c2nrst(nrst_c2_GPIO_Port, nrst_c2_Pin, 1000);
+
+PeriphGPIO __c1power(power_c1_GPIO_Port, power_c1_Pin, 1000);
+PeriphGPIO __c2power(power_c2_GPIO_Port, power_c2_Pin, 1000);
+
+PeriphGPIO __c1boot(boot_c1_GPIO_Port, boot_c1_Pin, 1000);
+PeriphGPIO __c2boot(boot_c2_GPIO_Port, boot_c2_Pin, 1000);
+
+PeriphGPIO __id0(id_0_GPIO_Port, id_0_Pin, 0);
+PeriphGPIO __id1(id_1_GPIO_Port, id_1_Pin, 0);
+PeriphGPIO __id2(id_2_GPIO_Port, id_2_Pin, 0);
+PeriphGPIO __id3(id_3_GPIO_Port, id_3_Pin, 0);
+
+PeriphUsart __usart1(&huart1);
+PeriphUsart __usart2(&huart2);
+PeriphUsart __usart3(&huart3);
+
+#if LED_TYPE == C3_LED
+PeriphGPIO __led1(GPIOA, GPIO_PIN_4, 100);
+PeriphGPIO __led2(GPIOA, GPIO_PIN_5, 500);
+PeriphGPIO __led3(GPIOA, GPIO_PIN_6, 100);
+PeriphGPIO __led4(GPIOA, GPIO_PIN_7, 500);
 #else
-#error 'NO LED TYPE'
+PeriphGPIO __led1(GPIOC, GPIO_PIN_4, 100);
+PeriphGPIO __led2(GPIOC, GPIO_PIN_5, 500);
+PeriphGPIO __led3(GPIOB, GPIO_PIN_0, 100);
+PeriphGPIO __led4(GPIOB, GPIO_PIN_1, 500);
+#endif
 #endif
 
-PeriphUsart g_hardware_uart2(&huart2);
+StateMachine g_stateMachines;
 
+/* motor control */
 LPID motor[4] ={0,};
 uint16_t g_getEncoder[4] = {0,};
 uint16_t g_pastEncoder[4] = {0,};
 long g_deltaEncoder[4] = {0,};
 long g_targetEncoder[4] = {0,};
-
-
-StateMachine g_stateMachines;
-
-uint8_t g_readData;
+/* motor control end */
 
 void init(void) {
 	/* peripheral init */
 	HAL_TIM_Base_Start_IT(&htim6);
 	HAL_TIM_Base_Start_IT(&htim7);
 
-	g_hardware_uart2.init();
+	__usart2.init();
+
 
 	for(int i = 0 ; i < 4; i++)
 		PID_Control_Long_Initialize(&motor[i]);
 }
 
+
+uint32_t nowtick = 0;
+uint32_t pasttick = 0;
+
 void run(void) {
-	__led1.run();
-	__led2.run();
-	__led3.run();
-	__led4.run();
+	led_run();
+
+	int cnt = 0;
+	int read = 0;
+
+	while(1)
+	{
+		read = __usart2.read();
+
+		if(cnt++ >= 100) {
+			//break;
+		}
+		if(read == -1)
+			break;
+		else
+			g_stateMachines.data_push_back(0, (uint8_t)read);
+	}
+	cnt = 0;
+
+
+	/* test sender */
+	nowtick = HAL_GetTick();
+	if(nowtick - pasttick > 100)
+	{
+		uint8_t sendData[10] = {0xFF, 0xFF, 0x02, 0x00, 0x03, 0x00, 0x01, 0x00, 0x05, 0x05};
+		__usart2.write(sendData, sizeof(sendData));
+		pasttick = nowtick;
+	}
+	/* test sender end */
+
 	/*
 	 * check queue (dequeue)
 	 * usart -> queue -> frame
@@ -81,21 +130,13 @@ void run(void) {
 	 * USART3 - To C2 -
 	 * USB_DEVICE_FS - TODO (for ROS) -
 	 * */
-	int read;
-	uint8_t cnt = 0;
-	while (1) {
-		read = g_hardware_uart2.read();
 
-		if(cnt++ >= 100) {
-			break;
-		}
-		if(read == -1)
-			break;
-	}
 
 	/*
 	 * state machine
 	 * */
+
+	g_stateMachines.run();
 
 	/*
 	 * enqueue data
@@ -106,6 +147,13 @@ void run(void) {
 	 * local functions
 	 * PERIPHERAL - LED, PWM, ... , etc.
 	 * */
+}
+void led_run(void)
+{
+	__led1.run();
+	__led2.run();
+	__led3.run();
+	__led4.run();
 }
 
 
@@ -118,7 +166,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	}
 	if(htim->Instance == TIM7)
 	{
-		timer_10ms();
+		//timer_10ms();
 	}
 }
 /*
@@ -203,6 +251,32 @@ __weak void timer_10ms(void)
 	}
 }
 
+void uart_tx_callback(UART_HandleTypeDef *huart)
+{
+	if(huart->Instance == USART1)
+	{
+	}
+	else if(huart->Instance == USART2)
+	{
+		__usart2.flush();
+	}
+	else if(huart->Instance == USART3)
+	{
+	}
+}
 
+void uart_rx_callback(UART_HandleTypeDef *huart)
+{
+	if(huart->Instance == USART1)
+	{
+	}
+	else if(huart->Instance == USART2)
+	{
+		__usart2.reset_rbuf();
+	}
+	else if(huart->Instance == USART3)
+	{
+	}
+}
 
 
