@@ -30,64 +30,57 @@ class StateMachine {
 protected:
 	int device;
 	stateMachine_ST info[3];
+	std::vector<uint8_t> data0;
 	std::vector<uint8_t> data1;
 	std::vector<uint8_t> data2;
-	std::vector<uint8_t> data3;
 
 
 
 public:
 	StateMachine(){
-		for(int i = 0 ; i < 3; i ++)
-		{
-			info[i].state 		= 0;
-			info[i].cmd1 		= 0;
-			info[i].cmd2 		= 0;
-			info[i].length 		= 0;
-			info[i].data 		= NULL;
-			info[i].checksum 	= 0;
-			info[i].count 		= 0;
-		}
+		machine_init(0);
+		machine_init(1);
+		machine_init(2);
 	};
 	/*
 	 * state machine
 	 * */
-	void run(int index);
+	void run(void);
 
 	void machine(int index, uint8_t data);
 
-	void str_init(int index)
+	void machine_init(int index)
 	{
 		info[index].state = 0;
 		info[index].cmd1 = 0;
 		info[index].cmd2 = 0;
 		info[index].length = 0;
 		if(info[index].data != NULL)
-			free(info[index]);
+			free(info[index].data);
 		else
 			info[index].data = NULL;
 	}
 
 	int data_push_back(int index, uint8_t data)
 	{
-		if(index == 1)
+		if(index == 0)
+			data0.push_back(data);
+		else if(index == 1)
 			data1.push_back(data);
 		else if(index == 2)
 			data2.push_back(data);
-		else if(index == 3)
-			data3.push_back(data);
 		else
 			return -1;
 		return 1;
 	}
 	int data_clear(int index)
 	{
-		if(index == 1)
+		if(index == 0)
+			data0.clear();
+		else if(index == 1)
 			data1.clear();
 		else if(index == 2)
 			data2.clear();
-		else if(index == 3)
-			data3.clear();
 		else
 			return -1;
 		return 1;

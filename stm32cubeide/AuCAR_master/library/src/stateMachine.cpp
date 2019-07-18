@@ -11,35 +11,26 @@
 
 
 
-void StateMachine::run(int index) {
+void StateMachine::run(void) {
 	int nsize = 0;
-	if(index == 1)
-	{
-		nsize = this->data1.size();
-		for(int i = 0; i < nsize; i++)
-		{
-			machine(1, data1.at(i));
-		}
+	nsize = this->data0.size();
+	for (int i = 0; i < nsize; i++) {
+		machine(0, data0.at(i));
 	}
-	else if(index == 2)
-	{
-		nsize = this->data2.size();
-		for(int i = 0; i < nsize; i++)
-		{
-			machine(2, data2.at(i));
-		}
+
+	nsize = this->data1.size();
+	for (int i = 0; i < nsize; i++) {
+		machine(1, data1.at(i));
 	}
-	else if(index == 3)
-	{
-		nsize = this->data3.size();
-		for(int i = 0; i < nsize; i++)
-		{
-			machine(3, data3.at(i));
-		}
+
+	nsize = this->data2.size();
+	for (int i = 0; i < nsize; i++) {
+		machine(2, data2.at(i));
 	}
+
+	data0.clear();
 	data1.clear();
 	data2.clear();
-	data3.clear();
 }
 
 void StateMachine::machine(int index, uint8_t data)
@@ -50,6 +41,7 @@ void StateMachine::machine(int index, uint8_t data)
 	if(str->state == 0x00)
 	{
 		str->count = 0;
+		str->checksum = 0;
 		if(data == 0xFF)
 			str->state = 0x01;
 		else
