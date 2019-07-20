@@ -7,12 +7,22 @@
 
 #include "stateMachine.h"
 
-#include "data_struct.h"
 
 
 extern COUNTERS g_counters;
 
 
+void StateMachine::machine_init(int index)
+{
+	info[index].state = 0;
+	info[index].cmd1 = 0;
+	info[index].cmd2 = 0;
+	info[index].length = 0;
+	if(info[index].data != NULL)
+		free(info[index].data);
+	else
+		info[index].data = NULL;
+}
 void StateMachine::run(void) {
 	int nsize = 0;
 	nsize = this->data0.size();
@@ -33,6 +43,9 @@ void StateMachine::run(void) {
 	data0.clear();
 	data1.clear();
 	data2.clear();
+
+	//get task//
+
 }
 
 void StateMachine::machine(int index, uint8_t data)
@@ -106,7 +119,7 @@ void StateMachine::machine(int index, uint8_t data)
 
 		}
 		//add task//
-
+		add_task(str);
 
 		//end task//
 		free(str->data);
@@ -115,3 +128,76 @@ void StateMachine::machine(int index, uint8_t data)
 	}
 }
 
+
+
+void StateMachine::add_task(stateMachine_ST *str)
+{
+	stateMachineTask_ST task;
+	task.cmd1 = str->cmd1;
+	task.cmd2 = str->cmd2;
+	task.length = str->length;
+	task.data = (uint8_t*)malloc(sizeof(uint8_t)*task.length);
+
+	task_enqueue(str, task);
+}
+void StateMachine::get_task(void)
+{
+
+}
+
+
+
+
+
+
+
+
+
+
+void StateMachine::init_task_queue(stateMachine_ST *str)
+{
+	str->qfront 		= 0;
+	str->qrear 			= 0;
+	str->qcount 		= 0;
+	str->qmax_count 	= 0;
+}
+BOOL StateMachine::is_task_empty(stateMachine_ST *str)
+{
+	return str->qfront == str->qrear ? true : false;
+}
+BOOL StateMachine::is_task_full(stateMachine_ST *str)
+{
+	return (str->qrear + 1) % TASK_MAX_QUEUE_SIZE == str->qfront ? true : false;
+}
+BOOL StateMachine::task_enqueue(stateMachine_ST *str, stateMachineTask_ST value)
+{
+	if(!is_task_full(str))
+	{
+		int preIndex = str->qrear;
+		str->qrear = (str->qrear + 1) % TASK_MAX_QUEUE_SIZE;
+		str->queue[preIndex] = value;
+		str->qcount++;
+		if(str->qcount > str->qmax_count)
+			str->qmax_count = str->qcount;
+		return true;
+	}
+	return false;
+}
+BOOL StateMachine::task_dequeue(stateMachine_ST *str, stateMachineTask_ST *value)
+{
+	if (!str || !value)
+		return false;
+	if (!is_task_empty(str))
+	{
+		int preIndex = str->qfront;
+		str->qfront = (str->qfront + 1) % TASK_MAX_QUEUE_SIZE;
+		str->qcount--;
+
+		*value = str->queue[preIndex];
+
+		free(str->queue[preIndex].data);
+
+		return true;
+	}
+	return false;
+}

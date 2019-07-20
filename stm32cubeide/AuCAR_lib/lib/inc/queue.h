@@ -8,10 +8,13 @@
 #ifndef QUEUE_H_
 #define QUEUE_H_
 
-#include "main.h"
+
 #ifdef __cplusplus
 extern "C"{
 #endif
+
+
+#include "main.h"
 
 #ifndef BOOL
 #define BOOL int
@@ -34,14 +37,9 @@ typedef struct _u_queue {
 	int max_count;
 } QUEUE_ST;
 
+typedef struct _st_machine_queue {
 
-typedef struct _c_queue {
-	// TODO CanRxMsgTypeDef queue[CAN_RX_MAX_QUEUE];
-	int front;
-	int rear;
-	int count;
-	int max_count;
-} C_QUEUE_ST;
+} QUEUE_MACHINE;
 
 /*
  * for uint8_t arr

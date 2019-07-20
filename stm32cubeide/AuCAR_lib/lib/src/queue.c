@@ -27,7 +27,7 @@ BOOL u8_is_full(QUEUE_ST * str) {
 
 BOOL u8_enqueue(QUEUE_ST *str, uint8_t value)
 {
-	if (!u_is_full(str))
+	if (!u8_is_full(str))
 	{
 		int preIndex = str->rear;
 		str->rear = (str->rear + 1) % UART_RX_MAX_QUEUE;
@@ -48,7 +48,7 @@ BOOL u8_dequeue(QUEUE_ST *str, uint8_t* value)
 		return false;
 	}
 
-	if (!u_is_empty(str))
+	if (!u8_is_empty(str))
 	{
 		int preIndex = str->front;
 		str->front = (str->front + 1) % UART_RX_MAX_QUEUE;
