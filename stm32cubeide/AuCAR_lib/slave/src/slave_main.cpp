@@ -10,7 +10,7 @@
 #include <periphMotor.h>
 #include "vector"
 #include "main.h"
-#include "stdio.h"
+#include "conf.h"
 
 #include "AuCAR_conf.h"
 #include "slave_main.h"
@@ -179,7 +179,7 @@ __weak void timer_1s(void)
 {
 	//TODO
 	pp++;
-	printf("PP : %d \r\n", pp);
+	_DEBUG("PP : %d \r\n", pp);
 }
 /*
  * motor control

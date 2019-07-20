@@ -8,9 +8,9 @@
 #include <periphGpio.h>
 #include <periphusart.h>
 #include <periphMotor.h>
-#include "stdio.h"
 #include "vector"
 #include "main.h"
+#include "conf.h"
 
 #include "AuCAR_conf.h"
 #include "master_main.h"
@@ -223,7 +223,7 @@ void timer_1s(void)
 {
 	//TODO
 	pp++;
-	printf("hello world%d\r\n", pp);
+	_DEBUG("hello world%d\r\n", pp);
 }
 
 void timer_10ms(void)

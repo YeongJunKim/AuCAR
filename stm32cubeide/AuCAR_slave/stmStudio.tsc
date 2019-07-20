@@ -1,5 +1,5 @@
 #STM Touch Studio user settings - do not edit
-#Sat Jul 20 11:50:20 KST 2019
+#Sat Jul 20 20:35:28 KST 2019
 ExprVariable.Col0ModelIdx=0
 ExprVariable.Col0Width=15
 ExprVariable.Col1ModelIdx=1
@@ -11,7 +11,7 @@ ExprVariable.Col3Width=91
 ExprVariable.Col4ModelIdx=4
 ExprVariable.Col4Width=40
 ExprVariable.Number=0
-GdbVar.ExecDate=1563590819331
+GdbVar.ExecDate=1563622317623
 GdbVar.LastExecRelative=Debug\\AuCAR_slave.elf
 GdbVar.Version=1
 GeneralPurpose.HorizontalSplit=350
@@ -114,7 +114,7 @@ Variable.Col4Width=40
 Variable.Number=1
 Variable.Version=5
 Variable0.AcqMode=false
-Variable0.Address=536874700
+Variable0.Address=536882448
 Variable0.Color=0x6699ff
 Variable0.Name=g_counters.stateMachineCpltCounter[0]
 Variable0.Type=unsigned 32-bit
