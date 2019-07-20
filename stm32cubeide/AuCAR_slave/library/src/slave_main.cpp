@@ -5,7 +5,7 @@
  *      Author: colson
  */
 
-#include <periphLed.h>
+#include <periphGPIO.h>
 #include <periphusart.h>
 #include <periphMotor.h>
 #include "vector"
@@ -21,16 +21,16 @@
 #include "tim.h"
 
 #if LOCAL_DEVICE == C1
-PeriphLED __led1(GPIOC, GPIO_PIN_0, 100);
-PeriphLED __led2(GPIOC, GPIO_PIN_1, 500);
-PeriphLED __led3(GPIOC, GPIO_PIN_2, 100);
-PeriphLED __led4(GPIOC, GPIO_PIN_3, 500);
+PeriphGPIO __led1(GPIOC, GPIO_PIN_0, 100);
+PeriphGPIO __led2(GPIOC, GPIO_PIN_1, 500);
+PeriphGPIO __led3(GPIOC, GPIO_PIN_2, 100);
+PeriphGPIO __led4(GPIOC, GPIO_PIN_3, 500);
 PeriphUsart __usart2(&huart2);
 #elif LOCAL_DEVICE == C2
-PeriphLED __led1(GPIOC, GPIO_PIN_0, 100);
-PeriphLED __led2(GPIOC, GPIO_PIN_1, 500);
-PeriphLED __led3(GPIOC, GPIO_PIN_2, 100);
-PeriphLED __led4(GPIOC, GPIO_PIN_3, 500);
+PeriphGPIO __led1(GPIOC, GPIO_PIN_0, 100);
+PeriphGPIO __led2(GPIOC, GPIO_PIN_1, 500);
+PeriphGPIO __led3(GPIOC, GPIO_PIN_2, 100);
+PeriphGPIO __led4(GPIOC, GPIO_PIN_3, 500);
 PeriphUsart __usart2(&huart2);
 #elif LOCAL_DEVICE == C3
 
