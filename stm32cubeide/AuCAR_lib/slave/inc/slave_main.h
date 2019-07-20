@@ -15,7 +15,7 @@ extern "C" {
 #include "interrupt_handler.h"
 
 
-
+int __printf__io__putchar(int ch);
 
 void init(void);
 void run(void);

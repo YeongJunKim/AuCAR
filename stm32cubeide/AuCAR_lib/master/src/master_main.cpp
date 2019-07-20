@@ -8,6 +8,7 @@
 #include <periphGpio.h>
 #include <periphusart.h>
 #include <periphMotor.h>
+#include "stdio.h"
 #include "vector"
 #include "main.h"
 
@@ -17,6 +18,8 @@
 
 #include "usart.h"
 #include "tim.h"
+
+
 
 #if LOCAL_DEVICE == C1
 PeriphLED __led1(GPIOC, GPIO_PIN_0, 100);
@@ -67,6 +70,13 @@ StateMachine g_stateMachines;
 
 BUGCATCHER debug = {0,};
 
+int __printf__io__putchar(int ch)
+{
+	uint8_t data = ch;
+	__usart2.write(&data, 1);
+
+	return ch;
+}
 
 void init(void) {
 	/* peripheral init */
@@ -135,6 +145,7 @@ void run(void) {
 		__usart3.write(sendData, sizeof(sendData));
 		pasttick = nowtick;
 	}
+
 	/* test sender end */
 	/*
 	 * check queue (dequeue)
@@ -207,9 +218,12 @@ void circuit_logic_test(void)
 	__c2power.run();
 }
 
+int pp = 0;
 void timer_1s(void)
 {
 	//TODO
+	pp++;
+	printf("hello world%d\r\n", pp);
 }
 
 void timer_10ms(void)

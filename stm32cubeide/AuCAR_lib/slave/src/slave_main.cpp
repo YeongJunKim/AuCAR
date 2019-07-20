@@ -10,6 +10,7 @@
 #include <periphMotor.h>
 #include "vector"
 #include "main.h"
+#include "stdio.h"
 
 #include "AuCAR_conf.h"
 #include "slave_main.h"
@@ -25,6 +26,7 @@ PeriphGPIO __led2(GPIOC, GPIO_PIN_1, 500);
 PeriphGPIO __led3(GPIOC, GPIO_PIN_2, 100);
 PeriphGPIO __led4(GPIOC, GPIO_PIN_3, 500);
 PeriphUsart __usart2(&huart2);
+PeriphUsart __usart4(&huart4);
 #elif LOCAL_DEVICE == C2
 PeriphGPIO __led1(GPIOC, GPIO_PIN_0, 100);
 PeriphGPIO __led2(GPIOC, GPIO_PIN_1, 500);
@@ -74,12 +76,21 @@ long g_deltaEncoder[4] = {0,};
 long g_targetEncoder[4] = {0,};
 /* motor control end */
 
+int __printf__io__putchar(int ch)
+{
+	uint8_t data = ch;
+	__usart4.write(&data, 1);
+
+	return ch;
+}
+
 void init(void) {
 	/* peripheral init */
 	HAL_TIM_Base_Start_IT(&htim6);
 	HAL_TIM_Base_Start_IT(&htim7);
 
 	__usart2.init();
+	__usart4.init();
 
 
 	for(int i = 0 ; i < 4; i++)
@@ -163,9 +174,12 @@ void led_run(void)
  *
  *
  * */
+int pp = 0;
 __weak void timer_1s(void)
 {
 	//TODO
+	pp++;
+	printf("PP : %d \r\n", pp);
 }
 /*
  * motor control

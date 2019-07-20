@@ -22,6 +22,7 @@ typedef struct _debug{
 }BUGCATCHER;
 
 
+int __printf__io__putchar(int ch);
 
 void init(void);
 void run(void);
