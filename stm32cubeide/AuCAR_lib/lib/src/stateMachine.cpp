@@ -136,9 +136,15 @@ void StateMachine::add_task(stateMachine_ST *str)
 	task.cmd1 = str->cmd1;
 	task.cmd2 = str->cmd2;
 	task.length = str->length;
-	task.data = (uint8_t*)malloc(sizeof(uint8_t)*task.length);
+	//TODO
+	//is queue empty?
+	//and then add task
+	if(is_task_empty(info))
+	{
+		task.data = (uint8_t*)malloc(sizeof(uint8_t)*task.length);
 
-	task_enqueue(str, task);
+		task_enqueue(str, task);
+	}
 }
 void StateMachine::get_task(void)
 {
