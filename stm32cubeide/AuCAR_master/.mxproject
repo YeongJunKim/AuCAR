@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=C:/Users/colson/Desktop/workspace/AuCAR/stm32cubeide/AuCAR_master/Inc
+HeaderPath=C:/Users/dud37/Desktop/workspace/AuCAR/stm32cubeide/AuCAR_master/Inc
 HeaderFiles=stm32f4xx_it.h;stm32f4xx_hal_conf.h;main.h;gpio.h;can.h;tim.h;usart.h;usb_otg.h;usb_device.h;usbd_conf.h;usbd_desc.h;usbd_cdc_if.h;dma.h;
-SourcePath=C:/Users/colson/Desktop/workspace/AuCAR/stm32cubeide/AuCAR_master/Src
+SourcePath=C:/Users/dud37/Desktop/workspace/AuCAR/stm32cubeide/AuCAR_master/Src
 SourceFiles=stm32f4xx_it.c;stm32f4xx_hal_msp.c;main.c;gpio.c;can.c;tim.c;usart.c;usb_otg.c;usb_device.c;usbd_conf.c;usbd_desc.c;usbd_cdc_if.c;dma.c;
 
 [PreviousLibFiles]
