@@ -19,6 +19,11 @@
 #include "usart.h"
 #include "tim.h"
 
+#include "ros/time.h"
+#include "ros.h"
+#include "std_msgs/String.h"
+
+
 
 
 #if LOCAL_DEVICE == C1
@@ -32,6 +37,14 @@ PeriphLED __led2(GPIOC, GPIO_PIN_1, 500);
 PeriphLED __led3(GPIOC, GPIO_PIN_2, 100);
 PeriphLED __led4(GPIOC, GPIO_PIN_3, 500);
 #elif LOCAL_DEVICE == C3
+ros::NodeHandle nh;
+
+std_msgs::String str_msg;
+
+ros::Publisher pub_chat("chatter", &str_msg);
+
+char hello[] = "Hello world!";
+
 
 PeriphGPIO __c1nrst(nrst_c1_GPIO_Port, nrst_c1_Pin, 1000);
 PeriphGPIO __c2nrst(nrst_c2_GPIO_Port, nrst_c2_Pin, 1000);
@@ -73,12 +86,17 @@ BUGCATCHER debug = {0,};
 int __printf__io__putchar(int ch)
 {
 	uint8_t data = ch;
-	__usart2.write(&data, 1);
+
+	//TODO change MAX485 or CAN line
+	//__usart2.write(&data, 1);
 
 	return ch;
 }
 
 void init(void) {
+	/* ros init */
+	nh.initNode();
+	nh.advertise(pub_chat);
 	/* peripheral init */
 	HAL_TIM_Base_Start_IT(&htim6);
 	HAL_TIM_Base_Start_IT(&htim7);
@@ -143,6 +161,10 @@ void run(void) {
 		uint8_t sendData[10] = {0xFF, 0xFF, 0x02, 0x00, 0x03, 0x00, 0x01, 0x00, 0x05, 0x05};
 		__usart1.write(sendData, sizeof(sendData));
 		__usart3.write(sendData, sizeof(sendData));
+
+		pub_chat.publish(&str_msg);
+		nh.spinOnce();
+
 		pasttick = nowtick;
 	}
 
@@ -239,7 +261,8 @@ void uart_tx_callback(UART_HandleTypeDef *huart)
 	}
 	else if(huart->Instance == USART2)
 	{
-		__usart2.flush();
+		//__usart2.flush();
+		nh.getHardware()->flush();
 	}
 	else if(huart->Instance == USART3)
 	{
@@ -255,7 +278,8 @@ void uart_rx_callback(UART_HandleTypeDef *huart)
 	}
 	else if(huart->Instance == USART2)
 	{
-		__usart2.reset_rbuf();
+		//__usart2.reset_rbuf();
+		nh.getHardware()->reset_rbuf();
 	}
 	else if(huart->Instance == USART3)
 	{
