@@ -21,6 +21,7 @@
 #include "tim.h"
 
 #if LOCAL_DEVICE == C1
+/* PeriphGPIO(MODULE, PIN, Period) */
 PeriphGPIO __led1(GPIOC, GPIO_PIN_0, 100);
 PeriphGPIO __led2(GPIOC, GPIO_PIN_1, 500);
 PeriphGPIO __led3(GPIOC, GPIO_PIN_2, 100);
@@ -86,15 +87,22 @@ int __printf__io__putchar(int ch)
 
 void init(void) {
 	/* peripheral init */
+	_DEBUG("Slave init start.\r\n");
 	HAL_TIM_Base_Start_IT(&htim6);
 	HAL_TIM_Base_Start_IT(&htim7);
+	_DEBUG("Timer init OK.\r\n");
 
 	__usart2.init();
 	__usart4.init();
+	_DEBUG("Usart init OK.\r\n");
 
 
 	for(int i = 0 ; i < 4; i++)
 		PID_Control_Long_Initialize(&motor[i]);
+
+	_DEBUG("PID init OK.\r\n");
+	_DEBUG("All init OK.\r\n");
+	_DEBUG("Slave init end.\r\n");
 }
 
 
@@ -179,7 +187,9 @@ __weak void timer_1s(void)
 {
 	//TODO
 	pp++;
-	_DEBUG("PP : %d \r\n", pp);
+	_DEBUG("TIME SEQUENCE : %d (sec) \r\n", pp);
+	_DEBUG("vector size\r\nvector0 size = %d \r\nvector1 size = %d \r\nvector2 size = %d\r\n"
+			,g_stateMachines.get_vector_size(0), g_stateMachines.get_vector_size(1),g_stateMachines.get_vector_size(2));
 }
 /*
  * motor control

@@ -97,9 +97,11 @@ void init(void) {
 	/* ros init */
 	nh.initNode();
 	nh.advertise(pub_chat);
+	_DEBUG("ROS init OK.\r\n");
 	/* peripheral init */
 	HAL_TIM_Base_Start_IT(&htim6);
 	HAL_TIM_Base_Start_IT(&htim7);
+	_DEBUG("Timer init OK.\r\n");
 
 	__c1boot.set();
 	__c2boot.set();
@@ -109,10 +111,13 @@ void init(void) {
 
 	__c1power.reset();
 	__c2power.reset();
+	_DEBUG("Default IO init OK.\r\n");
 
 	__usart1.init();
 	__usart2.init();
 	__usart3.init();
+	_DEBUG("Usart init OK.\r\n");
+	_DEBUG("All init OK.\r\n");
 }
 
 uint32_t nowtick = 0;
