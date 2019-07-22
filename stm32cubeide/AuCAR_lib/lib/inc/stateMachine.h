@@ -139,8 +139,8 @@ public:
 	void machine(int index, uint8_t data);
 
 public:
-	void add_task(stateMachine_ST *str);
-	void get_task(void);
+	void add_task(int index, stateMachine_ST *str);
+	void get_task(int index, stateMachineTask_ST *task);
 
 public:
 	int data_push_back(int index, uint8_t data)
@@ -167,13 +167,28 @@ public:
 			return -1;
 		return 1;
 	}
+	int get_vector_size(int index)
+	{
+		if(index == 0)
+			return data0.size();
+		else if(index == 1)
+			return data1.size();
+		else if(index == 2)
+			return data2.size();
+		else
+			return -1;
+	}
 
 public:
-	void init_task_queue(stateMachine_ST *str);
-	BOOL is_task_empty(stateMachine_ST *str);
-	BOOL is_task_full(stateMachine_ST *str);
-	BOOL task_enqueue(stateMachine_ST *str, stateMachineTask_ST value);
-	BOOL task_dequeue(stateMachine_ST *str, stateMachineTask_ST *value);
+	void init_task_queue(int index);
+	BOOL is_task_empty(int index);
+	BOOL is_task_full(int index);
+	BOOL task_enqueue(int index, stateMachineTask_ST value);
+	BOOL task_dequeue(int index, stateMachineTask_ST *value);
+
+public:
+
+
 
 };
 

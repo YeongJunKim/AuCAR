@@ -27,6 +27,7 @@ class PeriphUsart {
 
   public:
     PeriphUsart(){
+    	reset_rbuf();
     }
 
     PeriphUsart(UART_HandleTypeDef *huart_):
