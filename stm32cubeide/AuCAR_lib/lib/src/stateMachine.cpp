@@ -52,8 +52,26 @@ void StateMachine::run(void) {
 	/* TODO set task */
 	stateMachineTask_ST task;
 	//get_task(0, &task);
+	while(1)
+	{
+		if(!get_task(0, &task))
+			break;
+		else
+		{
+			/* TODO task run */
+			_DEBUG("Task Dequeue 0x%2X, 0x%2X, %d, %d\r\n",task.cmd1,task.cmd2,task.length,task.data);
+			for(int i = 0 ; i < task.length; i++)
+			{
+				_DEBUG("%d, ",task.data[i]);
+			}
+			_DEBUG("\r\n");
 
-	//free(task.data);
+			free(task.data);
+		}
+
+	}
+
+//	free(task.data);
 
 //	get_task(0, &task);
 //
@@ -140,8 +158,8 @@ void StateMachine::machine(int index, uint8_t data)
 		//add task//
 		add_task(index);
 
-		//end task//
 		free(str->data);
+		//end task//
 		str->checksum = 0x00;
 		str->state = 0x00;
 	}
@@ -164,19 +182,16 @@ void StateMachine::add_task(int index)
 		for(int i = 0; i < task.length; i++)
 			task.data[i] = info[index].data[i];
 		task_enqueue(index, task);
-		_DEBUG("Task Enqueue cmd1 = 0x%2X, cmd2 = 0x%2X, length = %d, data_alloc = %d\r\n", task.cmd1, task.cmd2, task.length, task.data);
+		_DEBUG("Task Enqueue 0x%2X, 0x%2X, %d, %d\r\n", task.cmd1, task.cmd2, task.length, task.data);
 	}
 	else
 	{
 		_DEBUG("Task is full \r\n");
 	}
 }
-void StateMachine::get_task(int index, stateMachineTask_ST *task)
+BOOL StateMachine::get_task(int index, stateMachineTask_ST *task)
 {
-	if(!is_task_empty(index))
-	{
-		task_dequeue(index, task);
-	}
+	return task_dequeue(index, task);
 }
 
 

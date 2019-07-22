@@ -140,7 +140,7 @@ public:
 
 public:
 	void add_task(int index);
-	void get_task(int index, stateMachineTask_ST *task);
+	BOOL get_task(int index, stateMachineTask_ST *task);
 
 public:
 	int data_push_back(int index, uint8_t data)
