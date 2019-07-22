@@ -49,8 +49,6 @@
 
 /* USER CODE BEGIN PV */
 
-  uint8_t sendData[5] = {1,2,3,4,5};
-  uint8_t rxData[5] = {0,};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -127,9 +125,6 @@ int main(void)
   HAL_TIM_Encoder_Start(&htim4,TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim5,TIM_CHANNEL_ALL);
   HAL_TIM_Encoder_Start(&htim8,TIM_CHANNEL_ALL);
-
-  uint32_t current_tick = 0;
-  uint32_t past_tick = 0;
 
 
   TIM1->CCR1 = 100;
