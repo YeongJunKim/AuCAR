@@ -50,7 +50,11 @@ void StateMachine::run(void) {
 
 	/* TODO get task */
 	/* TODO set task */
-//	stateMachineTask_ST task;
+	stateMachineTask_ST task;
+	//get_task(0, &task);
+
+	//free(task.data);
+
 //	get_task(0, &task);
 //
 //	free(task.data);
@@ -134,7 +138,7 @@ void StateMachine::machine(int index, uint8_t data)
 
 		}
 		//add task//
-		add_task(index, str);
+		add_task(index);
 
 		//end task//
 		free(str->data);
@@ -145,7 +149,7 @@ void StateMachine::machine(int index, uint8_t data)
 
 
 
-void StateMachine::add_task(int index, stateMachine_ST *str)
+void StateMachine::add_task(int index)
 {
 	stateMachineTask_ST task;
 	//TODO
@@ -157,6 +161,8 @@ void StateMachine::add_task(int index, stateMachine_ST *str)
 		task.cmd2 = this->info[index].cmd2;
 		task.length = this->info[index].length;
 		task.data = (uint8_t*)malloc(sizeof(uint8_t)*task.length);
+		for(int i = 0; i < task.length; i++)
+			task.data[i] = info[index].data[i];
 		task_enqueue(index, task);
 		_DEBUG("Task Enqueue cmd1 = 0x%2X, cmd2 = 0x%2X, length = %d, data_alloc = %d\r\n", task.cmd1, task.cmd2, task.length, task.data);
 	}
@@ -222,11 +228,13 @@ BOOL StateMachine::task_dequeue(int index, stateMachineTask_ST *value)
 		info[index].qfront = (info[index].qfront + 1) % TASK_MAX_QUEUE_SIZE;
 		info[index].qcount--;
 		/* new allocation */
-		*value = info[index].queue[preIndex];
-		value->cmd1 = info[index].cmd1;
-		value->cmd2 = info[index].cmd2;
-		value->length = info[index].length;
+		//*value = info[index].queue[preIndex];
+		value->cmd1 = info[index].queue[preIndex].cmd1;
+		value->cmd2 = info[index].queue[preIndex].cmd2;
+		value->length = info[index].queue[preIndex].length;
 		value->data = (uint8_t*)malloc(sizeof(uint8_t)*value->length);
+		for(int i = 0 ; i < value->length ; i++)
+			value->data[i] = info[index].queue[preIndex].data[i];
 		/* free queue memory allocation */
 		free(info[index].queue[preIndex].data);
 		return true;

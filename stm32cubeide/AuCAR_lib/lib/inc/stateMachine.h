@@ -139,7 +139,7 @@ public:
 	void machine(int index, uint8_t data);
 
 public:
-	void add_task(int index, stateMachine_ST *str);
+	void add_task(int index);
 	void get_task(int index, stateMachineTask_ST *task);
 
 public:
