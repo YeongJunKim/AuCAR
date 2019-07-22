@@ -103,6 +103,8 @@ void init(void) {
 	_DEBUG("PID init OK.\r\n");
 	_DEBUG("All init OK.\r\n");
 	_DEBUG("Slave init end.\r\n");
+	_DEBUG("wait 2sec\r\n");
+	HAL_Delay(2000);
 }
 
 
@@ -186,10 +188,13 @@ int pp = 0;
 __weak void timer_1s(void)
 {
 	//TODO
+	if(g_stateMachines.get_vector_size(0) || g_stateMachines.get_vector_size(1) || g_stateMachines.get_vector_size(2)){
+		_DEBUG("TIME SEQUENCE : %d (sec) \r\n", pp);
+		_DEBUG("vector size\r\nvector0 size = %d \r\nvector1 size = %d \r\nvector2 size = %d\r\n"
+				,g_stateMachines.get_vector_size(0), g_stateMachines.get_vector_size(1),g_stateMachines.get_vector_size(2));
+
+	}
 	pp++;
-	_DEBUG("TIME SEQUENCE : %d (sec) \r\n", pp);
-	_DEBUG("vector size\r\nvector0 size = %d \r\nvector1 size = %d \r\nvector2 size = %d\r\n"
-			,g_stateMachines.get_vector_size(0), g_stateMachines.get_vector_size(1),g_stateMachines.get_vector_size(2));
 }
 /*
  * motor control
