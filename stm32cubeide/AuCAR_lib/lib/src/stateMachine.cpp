@@ -14,6 +14,9 @@
 extern COUNTERS g_counters;
 
 
+/*
+ * machine functions (basic function of this class)
+ * */
 void StateMachine::machine_init(int index)
 {
 	info[index].state = 0;
@@ -29,47 +32,53 @@ void StateMachine::machine_init(int index)
 }
 void StateMachine::run(void) {
 	int nsize = 0;
-	nsize = this->data0.size();
-	for (int i = 0; i < nsize; i++) {
-		machine(0, data0.at(i));
+
+	for(int i = 0 ; i < MACHINE_MAX_SIZE; i++)
+	{
+		nsize = get_vector_size(i);
+		for (int j = 0 ; j < nsize; j++)
+			machine(i, info[i].rdata.at(j));
+		data_clear(i);
 	}
 
-	nsize = this->data1.size();
-	for (int i = 0; i < nsize; i++) {
-		machine(1, data1.at(i));
+	stateMachineTask_ST task;
+	for(int i = 0; i < MACHINE_MAX_SIZE; i++)
+	{
+		while(1)
+		{
+			if(!get_task(i, &task))
+				break;
+			else
+			{
+				uint32_t getTick = HAL_GetTick();
+				_DEBUG("NUM %d, Task Dequeue 0x%2X, 0x%2X, %d, %d, %d \r\n",i,task.cmd1,task.cmd2,task.length,task.data, getTick);
+
+				free(task.data);
+			}
+		}
 	}
 
-	nsize = this->data2.size();
-	for (int i = 0; i < nsize; i++) {
-		machine(2, data2.at(i));
-	}
 
-	data0.clear();
-	data1.clear();
-	data2.clear();
+
 
 	/* TODO get task */
 	/* TODO set task */
-	stateMachineTask_ST task;
-	//get_task(0, &task);
-	while(1)
-	{
-		if(!get_task(0, &task))
-			break;
-		else
-		{
-			/* TODO task run */
-			_DEBUG("Task Dequeue 0x%2X, 0x%2X, %d, %d\r\n",task.cmd1,task.cmd2,task.length,task.data);
-			for(int i = 0 ; i < task.length; i++)
-			{
-				_DEBUG("%d, ",task.data[i]);
-			}
-			_DEBUG("\r\n");
-
-			free(task.data);
-		}
-
-	}
+//	stateMachineTask_ST task;
+//	//get_task(0, &task);
+//	while(1)
+//	{
+//		if(!get_task(0, &task))
+//			break;
+//		else
+//		{
+//			/* TODO task run */
+//			uint32_t getTick = HAL_GetTick();
+//			_DEBUG("Task Dequeue 0x%2X, 0x%2X, %d, %d, %d \r\n",task.cmd1,task.cmd2,task.length,task.data, getTick);
+//
+//			free(task.data);
+//		}
+//
+//	}
 
 //	free(task.data);
 
@@ -167,6 +176,11 @@ void StateMachine::machine(int index, uint8_t data)
 
 
 
+
+/*
+ * task management
+ * */
+
 void StateMachine::add_task(int index)
 {
 	stateMachineTask_ST task;
@@ -182,7 +196,8 @@ void StateMachine::add_task(int index)
 		for(int i = 0; i < task.length; i++)
 			task.data[i] = info[index].data[i];
 		task_enqueue(index, task);
-		_DEBUG("Task Enqueue 0x%2X, 0x%2X, %d, %d\r\n", task.cmd1, task.cmd2, task.length, task.data);
+		uint32_t getTick = HAL_GetTick();
+		_DEBUG("NUM %d, Task Enqueue 0x%2X, 0x%2X, %d, %d, %d\r\n",index, task.cmd1, task.cmd2, task.length, task.data, getTick);
 	}
 	else
 	{
@@ -194,14 +209,9 @@ BOOL StateMachine::get_task(int index, stateMachineTask_ST *task)
 	return task_dequeue(index, task);
 }
 
-
-
-
-
-
-
-
-
+/*
+ * queue controls
+ * */
 
 void StateMachine::init_task_queue(int index)
 {

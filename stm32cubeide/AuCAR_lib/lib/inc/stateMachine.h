@@ -90,6 +90,8 @@
 #define true 1
 #define false 0
 
+#define MACHINE_MAX_SIZE 3
+
 typedef struct _stateMachineTask{
 	uint16_t cmd1;
 	uint16_t cmd2;
@@ -98,7 +100,10 @@ typedef struct _stateMachineTask{
 }stateMachineTask_ST;
 
 typedef struct _stateMachine{
+	/* state machine */
 	int 	state;
+
+	/* sampled packet */
 	uint16_t 	cmd1;
 	uint16_t 	cmd2;
 	uint16_t 	length;
@@ -106,6 +111,10 @@ typedef struct _stateMachine{
 	uint8_t 	checksum;
 	uint16_t 	count;
 
+	/* raw data */
+	std::vector<uint8_t> rdata;
+
+	/* queue */
 	stateMachineTask_ST queue[TASK_MAX_QUEUE_SIZE];
 	int qfront;
 	int qrear;
@@ -118,18 +127,14 @@ typedef struct _stateMachine{
 class StateMachine {
 protected:
 	int device;
-	stateMachine_ST info[3];
-	std::vector<uint8_t> data0;
-	std::vector<uint8_t> data1;
-	std::vector<uint8_t> data2;
+	stateMachine_ST info[MACHINE_MAX_SIZE];
 
 
 
 public:
 	StateMachine(){
-		machine_init(0);
-		machine_init(1);
-		machine_init(2);
+		for(int i = 0 ; i < MACHINE_MAX_SIZE; i++)
+			machine_init(i);
 	};
 	/*
 	 * state machine
@@ -145,38 +150,26 @@ public:
 public:
 	int data_push_back(int index, uint8_t data)
 	{
-		if(index == 0)
-			data0.push_back(data);
-		else if(index == 1)
-			data1.push_back(data);
-		else if(index == 2)
-			data2.push_back(data);
-		else
+		if(index >= MACHINE_MAX_SIZE || index < 0)
 			return -1;
+
+		info[index].rdata.push_back(data);
 		return 1;
 	}
 	int data_clear(int index)
 	{
-		if(index == 0)
-			data0.clear();
-		else if(index == 1)
-			data1.clear();
-		else if(index == 2)
-			data2.clear();
-		else
+		if(index >= MACHINE_MAX_SIZE || index < 0)
 			return -1;
+
+		info[index].rdata.clear();
 		return 1;
 	}
 	int get_vector_size(int index)
 	{
-		if(index == 0)
-			return data0.size();
-		else if(index == 1)
-			return data1.size();
-		else if(index == 2)
-			return data2.size();
-		else
+		if(index >= MACHINE_MAX_SIZE || index < 0)
 			return -1;
+
+		return info[index].rdata.size();
 	}
 
 public:
