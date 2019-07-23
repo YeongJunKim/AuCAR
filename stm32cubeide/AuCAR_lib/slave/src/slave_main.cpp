@@ -201,7 +201,8 @@ void led_run(void)
  *
  *
  * */
-int pp = 0;
+uint32_t pp = 0;
+uint32_t ppp = 0;
 __weak void timer_1s(void)
 {
 	//TODO
@@ -210,6 +211,10 @@ __weak void timer_1s(void)
 		_DEBUG("vector size\r\nvector0 size = %d \r\nvector1 size = %d \r\nvector2 size = %d\r\n"
 				,g_stateMachines.get_vector_size(0), g_stateMachines.get_vector_size(1),g_stateMachines.get_vector_size(2));
 
+	}
+	else if(pp % 10 == 0){
+		_DEBUG("10s count = %d \r\n", ppp);
+		ppp++;
 	}
 	pp++;
 }
