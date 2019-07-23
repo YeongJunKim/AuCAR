@@ -8,6 +8,7 @@
 #include <periphGPIO.h>
 #include <periphusart.h>
 #include <periphMotor.h>
+#include <periphDelay.h>
 #include "vector"
 #include "main.h"
 #include "conf.h"
@@ -22,6 +23,8 @@
 
 #if LOCAL_DEVICE == C1
 /* PeriphGPIO(MODULE, PIN, Period) */
+PeriphDelay __delay;
+
 PeriphGPIO __led1(GPIOC, GPIO_PIN_0, 100);
 PeriphGPIO __led2(GPIOC, GPIO_PIN_1, 500);
 PeriphGPIO __led3(GPIOC, GPIO_PIN_2, 100);
@@ -103,8 +106,8 @@ void init(void) {
 	_DEBUG("PID init OK.\r\n");
 	_DEBUG("All init OK.\r\n");
 	_DEBUG("Slave init end.\r\n");
-	_DEBUG("wait 2sec\r\n");
-	HAL_Delay(2000);
+	_DEBUG("wait 1sec\r\n");
+	__delay.delay_ms(400);
 }
 
 
@@ -136,10 +139,24 @@ void run(void) {
 	nowtick = HAL_GetTick();
 	if(nowtick - pasttick > 100)
 	{
-		uint8_t sendData[10] = {0xFF, 0xFF, 0x02, 0x00, 0x03, 0x00, 0x01, 0x00, 0x05, 0x05};
-		__usart2.write(sendData, sizeof(sendData));
+		uint8_t arr[50];
+		uint8_t checksum = 0;
+		for(int i = 0 ; i < 50; i++){
+			arr[i] = i;
+			checksum += arr[i];
+		}
+		uint8_t sendData1[8] = {0xFF, 0xFF, 0x05, 0x00, 0x04, 0x00, 0xF4, 0x01};
+		sendData1[6] = (uint8_t)50;
+		sendData1[7] = (uint8_t)50 >> 8;
+		__usart2.write(sendData1, sizeof(sendData1));
+		__usart2.write(arr, sizeof(arr));
+		__usart2.write(&checksum, sizeof(checksum));
+
 		pasttick = nowtick;
+
 	}
+
+
 	/* test sender end */
 
 	/*

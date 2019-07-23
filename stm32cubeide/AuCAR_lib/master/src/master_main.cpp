@@ -37,6 +37,7 @@ PeriphLED __led2(GPIOC, GPIO_PIN_1, 500);
 PeriphLED __led3(GPIOC, GPIO_PIN_2, 100);
 PeriphLED __led4(GPIOC, GPIO_PIN_3, 500);
 #elif LOCAL_DEVICE == C3
+/*
 ros::NodeHandle nh;
 
 std_msgs::String str_msg;
@@ -44,7 +45,7 @@ std_msgs::String str_msg;
 ros::Publisher pub_chat("chatter", &str_msg);
 
 char hello[] = "Hello world!";
-
+*/
 
 PeriphGPIO __c1nrst(nrst_c1_GPIO_Port, nrst_c1_Pin, 1000);
 PeriphGPIO __c2nrst(nrst_c2_GPIO_Port, nrst_c2_Pin, 1000);
@@ -88,16 +89,18 @@ int __printf__io__putchar(int ch)
 	uint8_t data = ch;
 
 	//TODO change MAX485 or CAN line
-	//__usart2.write(&data, 1);
+	__usart2.write(&data, 1);
 
 	return ch;
 }
 
 void init(void) {
 	/* ros init */
+	/*
 	nh.initNode();
 	nh.advertise(pub_chat);
 	_DEBUG("ROS init OK.\r\n");
+	*/
 	/* peripheral init */
 	HAL_TIM_Base_Start_IT(&htim6);
 	HAL_TIM_Base_Start_IT(&htim7);
@@ -122,6 +125,9 @@ void init(void) {
 
 uint32_t nowtick = 0;
 uint32_t pasttick = 0;
+
+uint8_t abc = 0;
+uint8_t cba = 0;
 
 void run(void) {
 
@@ -161,14 +167,32 @@ void run(void) {
 	cnt = 0;
 	/* test sender */
 	nowtick = HAL_GetTick();
-	if(nowtick - pasttick > 100)
+	if(nowtick - pasttick > 1000)
 	{
-		uint8_t sendData[10] = {0xFF, 0xFF, 0x02, 0x00, 0x03, 0x00, 0x01, 0x00, 0x05, 0x05};
-		__usart1.write(sendData, sizeof(sendData));
-		__usart3.write(sendData, sizeof(sendData));
+		uint8_t arr[50];
+		uint8_t checksum = 0;
+		for(int i = 0 ; i < 50; i++){
+			arr[i] = i;
+			checksum += arr[i];
+		}
 
+		uint8_t sendData1[8] = {0xFF, 0xFF, 0x05, 0x00, 0x04, 0x00, 0xF4, 0x01};
+		sendData1[6] = (uint8_t)50;
+		sendData1[7] = (uint8_t)50 >> 8;
+		__usart1.write(sendData1, sizeof(sendData1));
+		__usart3.write(sendData1, sizeof(sendData1));
+		__usart1.write(arr, sizeof(arr));
+		__usart3.write(arr, sizeof(arr));
+		__usart1.write(&checksum, sizeof(checksum));
+		__usart3.write(&checksum, sizeof(checksum));
+
+
+
+/*
 		pub_chat.publish(&str_msg);
 		nh.spinOnce();
+*/
+
 
 		pasttick = nowtick;
 	}
@@ -266,8 +290,8 @@ void uart_tx_callback(UART_HandleTypeDef *huart)
 	}
 	else if(huart->Instance == USART2)
 	{
-		//__usart2.flush();
-		nh.getHardware()->flush();
+		__usart2.flush();
+		//nh.getHardware()->flush();
 	}
 	else if(huart->Instance == USART3)
 	{
@@ -283,8 +307,8 @@ void uart_rx_callback(UART_HandleTypeDef *huart)
 	}
 	else if(huart->Instance == USART2)
 	{
-		//__usart2.reset_rbuf();
-		nh.getHardware()->reset_rbuf();
+		__usart2.reset_rbuf();
+		//nh.getHardware()->reset_rbuf();
 	}
 	else if(huart->Instance == USART3)
 	{
