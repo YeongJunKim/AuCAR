@@ -21,8 +21,13 @@
 #include "usart.h"
 #include "tim.h"
 
+#include "AuCAR.h"
+
+
 #if LOCAL_DEVICE == C1
 /* PeriphGPIO(MODULE, PIN, Period) */
+StateMachine g_stateMachines;
+
 PeriphDelay __delay;
 
 PeriphGPIO __led1(GPIOC, GPIO_PIN_0, 100);
@@ -31,6 +36,8 @@ PeriphGPIO __led3(GPIOC, GPIO_PIN_2, 100);
 PeriphGPIO __led4(GPIOC, GPIO_PIN_3, 500);
 PeriphUsart __usart2(&huart2);
 PeriphUsart __usart4(&huart4);
+
+
 #elif LOCAL_DEVICE == C2
 PeriphGPIO __led1(GPIOC, GPIO_PIN_0, 100);
 PeriphGPIO __led2(GPIOC, GPIO_PIN_1, 500);
@@ -70,7 +77,6 @@ PeriphGPIO __led4(GPIOB, GPIO_PIN_1, 500);
 #endif
 #endif
 
-StateMachine g_stateMachines;
 
 /* motor control */
 LPID motor[4] ={0,};
@@ -137,17 +143,18 @@ void run(void) {
 
 	/* test sender */
 	nowtick = HAL_GetTick();
-	if(nowtick - pasttick > 100)
+	if(nowtick - pasttick > 5)
 	{
-		uint8_t arr[50];
+		uint16_t size = 20;
+		uint8_t arr[size];
 		uint8_t checksum = 0;
-		for(int i = 0 ; i < 50; i++){
+		for(int i = 0 ; i < size; i++){
 			arr[i] = i;
 			checksum += arr[i];
 		}
 		uint8_t sendData1[8] = {0xFF, 0xFF, 0x05, 0x00, 0x04, 0x00, 0xF4, 0x01};
-		sendData1[6] = (uint8_t)50;
-		sendData1[7] = (uint8_t)50 >> 8;
+		sendData1[6] = (uint8_t)size;
+		sendData1[7] = (uint8_t)(size >> 8);
 		__usart2.write(sendData1, sizeof(sendData1));
 		__usart2.write(arr, sizeof(arr));
 		__usart2.write(&checksum, sizeof(checksum));
