@@ -99,6 +99,7 @@ typedef struct _stateMachineTask{
 	uint8_t *data;
 }stateMachineTask_ST;
 
+
 typedef struct _stateMachine{
 	/* state machine */
 	int 	state;
@@ -113,13 +114,18 @@ typedef struct _stateMachine{
 
 	/* raw data */
 	std::vector<uint8_t> rdata;
-
 	/* queue */
-	stateMachineTask_ST queue[TASK_MAX_QUEUE_SIZE];
-	int qfront;
-	int qrear;
-	int qcount;
-	int qmax_count;
+	stateMachineTask_ST rqueue[TASK_MAX_QUEUE_SIZE];
+	int rqfront;
+	int rqrear;
+	int rqcount;
+	int rqmax_count;
+
+	stateMachineTask_ST squeue[TASK_MAX_QUEUE_SIZE];
+	int sqfront;
+	int sqrear;
+	int sqcount;
+	int sqmax_count;
 
 }stateMachine_ST;
 
@@ -146,6 +152,10 @@ public:
 public:
 	void add_task(int index);
 	BOOL get_task(int index, stateMachineTask_ST *task);
+
+	void send_task(int index, stateMachineTask_ST task);
+
+public:
 
 public:
 	int data_push_back(int index, uint8_t data)
