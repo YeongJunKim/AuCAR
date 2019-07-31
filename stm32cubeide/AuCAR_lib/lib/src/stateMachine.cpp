@@ -144,11 +144,10 @@ void StateMachine::machine(int index, uint8_t data)
 			//correct//
 			g_counters.stateMachineCpltCounter[index]++;
 
-		}
-		//add task//
 		add_task(index);
-
+		}
 		free(str->data);
+		//add task//
 		//end task//
 		str->checksum = 0x00;
 		str->state = 0x00;
