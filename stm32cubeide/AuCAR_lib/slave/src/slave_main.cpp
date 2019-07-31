@@ -84,6 +84,8 @@ uint16_t g_getEncoder[4] = {0,};
 uint16_t g_pastEncoder[4] = {0,};
 long g_deltaEncoder[4] = {0,};
 long g_targetEncoder[4] = {0,};
+
+long g_sumEncoder[4] = {0,};
 /* motor control end */
 
 int __printf__io__putchar(int ch)
@@ -187,6 +189,19 @@ void run(void) {
 	 * frame -> queue -> usart
 	 * */
 
+
+
+
+	/*
+	 * sang uk area
+	 * 1. 단위변경 -> m/s -> target encoder; 1 rev -> 1820;
+	 * 2. target position -> target sum
+	 * 3. > < =
+	 * 4. 함수 만두르기
+	 * */
+
+
+
 	/*
 	 * local functions
 	 * PERIPHERAL - LED, PWM, ... , etc.
@@ -244,6 +259,9 @@ __weak void timer_10ms(void)
 	g_getEncoder[2] = TIM3->CNT;
 	g_getEncoder[3] = TIM4->CNT;
 
+
+
+
 	for (int i = 0 ; i < 4 ; i++)
 	{
 		if(g_getEncoder[i] > 30000)
@@ -251,6 +269,14 @@ __weak void timer_10ms(void)
 		else
 			g_deltaEncoder[i] = g_getEncoder[i];
 	}
+
+	for (int i = 0 ; i < 4; i ++)
+	{
+		g_sumEncoder[i] += g_deltaEncoder[i];
+	}
+
+
+
 
 	TIM5->CNT = 0;
 	TIM8->CNT = 0;
