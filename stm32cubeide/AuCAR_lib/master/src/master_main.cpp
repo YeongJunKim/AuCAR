@@ -22,6 +22,7 @@
 #include "ros/time.h"
 #include "ros.h"
 #include "std_msgs/String.h"
+#include "geometry_msgs/Twist.h"
 
 
 
@@ -37,15 +38,25 @@ PeriphLED __led2(GPIOC, GPIO_PIN_1, 500);
 PeriphLED __led3(GPIOC, GPIO_PIN_2, 100);
 PeriphLED __led4(GPIOC, GPIO_PIN_3, 500);
 #elif LOCAL_DEVICE == C3
-/*
+
 ros::NodeHandle nh;
 
 std_msgs::String str_msg;
 
 ros::Publisher pub_chat("chatter", &str_msg);
-
 char hello[] = "Hello world!";
-*/
+
+void module0_cb(const geometry_msgs::Twist& msg);
+void module1_cb(const geometry_msgs::Twist& msg);
+void module2_cb(const geometry_msgs::Twist& msg);
+void module3_cb(const geometry_msgs::Twist& msg);
+
+ros::Subscriber<geometry_msgs::Twist> module0_sub("AuCAR/module0", &module0_cb);
+ros::Subscriber<geometry_msgs::Twist> module1_sub("AuCAR/module1", &module1_cb);
+ros::Subscriber<geometry_msgs::Twist> module2_sub("AuCAR/module2", &module2_cb);
+ros::Subscriber<geometry_msgs::Twist> module3_sub("AuCAR/module3", &module3_cb);
+
+
 
 PeriphGPIO __c1nrst(nrst_c1_GPIO_Port, nrst_c1_Pin, 1000);
 PeriphGPIO __c2nrst(nrst_c2_GPIO_Port, nrst_c2_Pin, 1000);
@@ -89,18 +100,24 @@ int __printf__io__putchar(int ch)
 	uint8_t data = ch;
 
 	//TODO change MAX485 or CAN line
-	__usart2.write(&data, 1);
+	//__usart2.write(&data, 1);
 
 	return ch;
 }
 
 void init(void) {
 	/* ros init */
-	/*
+
 	nh.initNode();
 	nh.advertise(pub_chat);
+
+	nh.subscribe(module0_sub);
+	nh.subscribe(module1_sub);
+	nh.subscribe(module2_sub);
+	nh.subscribe(module3_sub);
+
 	_DEBUG("ROS init OK.\r\n");
-	*/
+
 	/* peripheral init */
 	HAL_TIM_Base_Start_IT(&htim6);
 	HAL_TIM_Base_Start_IT(&htim7);
@@ -117,7 +134,7 @@ void init(void) {
 	_DEBUG("Default IO init OK.\r\n");
 
 	__usart1.init();
-	__usart2.init();
+	//__usart2.init();
 	__usart3.init();
 	_DEBUG("Usart init OK.\r\n");
 	_DEBUG("All init OK.\r\n");
@@ -125,6 +142,9 @@ void init(void) {
 
 uint32_t nowtick = 0;
 uint32_t pasttick = 0;
+
+uint32_t rosnowtick = 0;
+uint32_t rospasttick = 0;
 
 uint8_t abc = 0;
 uint8_t cba = 0;
@@ -188,13 +208,21 @@ void run(void) {
 
 
 
-/*
-		pub_chat.publish(&str_msg);
-		nh.spinOnce();
-*/
-
 
 		pasttick = nowtick;
+	}
+
+	/*
+	 * ROS task
+	 *
+	 * */
+	rosnowtick = HAL_GetTick();
+	if(rosnowtick - rospasttick > 1000)
+	{
+		str_msg.data = hello;
+		pub_chat.publish(&str_msg);
+		nh.spinOnce();
+		rospasttick = rosnowtick;
 	}
 
 	/* test sender end */
@@ -290,8 +318,8 @@ void uart_tx_callback(UART_HandleTypeDef *huart)
 	}
 	else if(huart->Instance == USART2)
 	{
-		__usart2.flush();
-		//nh.getHardware()->flush();
+		//__usart2.flush();
+		nh.getHardware()->flush();
 	}
 	else if(huart->Instance == USART3)
 	{
@@ -307,8 +335,8 @@ void uart_rx_callback(UART_HandleTypeDef *huart)
 	}
 	else if(huart->Instance == USART2)
 	{
-		__usart2.reset_rbuf();
-		//nh.getHardware()->reset_rbuf();
+		//__usart2.reset_rbuf();
+		nh.getHardware()->reset_rbuf();
 	}
 	else if(huart->Instance == USART3)
 	{
@@ -316,3 +344,16 @@ void uart_rx_callback(UART_HandleTypeDef *huart)
 	}
 }
 
+void module0_cb(const geometry_msgs::Twist& msg){
+	__led1.setPeriod(100);
+}
+
+void module1_cb(const geometry_msgs::Twist& msg){
+	__led2.setPeriod(100);
+}
+void module2_cb(const geometry_msgs::Twist& msg){
+	__led3.setPeriod(100);
+}
+void module3_cb(const geometry_msgs::Twist& msg){
+	__led4.setPeriod(100);
+}
