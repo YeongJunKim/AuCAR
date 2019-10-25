@@ -21,6 +21,8 @@
 
 #include "ros/time.h"
 #include "ros.h"
+
+#include "std_msgs/Header.h"
 #include "std_msgs/String.h"
 #include "geometry_msgs/Twist.h"
 
@@ -42,9 +44,13 @@ PeriphLED __led4(GPIOC, GPIO_PIN_3, 500);
 ros::NodeHandle nh;
 
 std_msgs::String str_msg;
+std_msgs::Header str_header;
 
-ros::Publisher pub_chat("chatter", &str_msg);
+ros::Publisher pub_chat("AuCAR/chatter", &str_msg);
 char hello[] = "Hello world!";
+
+ros::Publisher pub_header("AuCAR/header", &str_header);
+
 
 void module0_cb(const geometry_msgs::Twist& msg);
 void module1_cb(const geometry_msgs::Twist& msg);
@@ -110,6 +116,7 @@ void init(void) {
 
 	nh.initNode();
 	nh.advertise(pub_chat);
+	nh.advertise(pub_header);
 
 	nh.subscribe(module0_sub);
 	nh.subscribe(module1_sub);
@@ -220,6 +227,8 @@ void run(void) {
 	if(rosnowtick - rospasttick > 1000)
 	{
 		str_msg.data = hello;
+		str_header.seq = 100;
+		pub_chat.publish(&str_header);
 		pub_chat.publish(&str_msg);
 		nh.spinOnce();
 		rospasttick = rosnowtick;
@@ -347,7 +356,6 @@ void uart_rx_callback(UART_HandleTypeDef *huart)
 void module0_cb(const geometry_msgs::Twist& msg){
 	__led1.setPeriod(100);
 }
-
 void module1_cb(const geometry_msgs::Twist& msg){
 	__led2.setPeriod(100);
 }
