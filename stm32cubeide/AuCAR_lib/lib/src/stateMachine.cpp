@@ -14,6 +14,9 @@
 extern COUNTERS g_counters;
 
 
+/*
+ * machine functions (basic function of this class)
+ * */
 void StateMachine::machine_init(int index)
 {
 	info[index].state = 0;
@@ -29,38 +32,47 @@ void StateMachine::machine_init(int index)
 }
 void StateMachine::run(void) {
 	int nsize = 0;
-	nsize = this->data0.size();
-	for (int i = 0; i < nsize; i++) {
-		machine(0, data0.at(i));
+
+	for(int i = 0 ; i < MACHINE_MAX_SIZE; i++)
+	{
+		nsize = get_vector_size(i);
+		for (int j = 0 ; j < nsize; j++)
+			machine(i, info[i].rdata.at(j));
+		data_clear(i);
 	}
 
-	nsize = this->data1.size();
-	for (int i = 0; i < nsize; i++) {
-		machine(1, data1.at(i));
-	}
-
-	nsize = this->data2.size();
-	for (int i = 0; i < nsize; i++) {
-		machine(2, data2.at(i));
-	}
-
-	data0.clear();
-	data1.clear();
-	data2.clear();
-
-	/* TODO get task */
-	/* TODO set task */
 //	stateMachineTask_ST task;
-//	get_task(0, &task);
+//	for(int i = 0; i < MACHINE_MAX_SIZE; i++)
+//	{
+//		while(1)
+//		{
+//			if(!get_task(i, &task))
+//				break;
+//			else
+//			{
+//				uint32_t getTick = HAL_GetTick();
+//				_DEBUG("NUM %d, Task Dequeue 0x%2X, 0x%2X, %d, %d, %d \r\n",i,task.cmd1,task.cmd2,task.length,task.data, getTick);
 //
-//	free(task.data);
-//	get_task(1, &task);
-//
-//	free(task.data);
-//	get_task(2, &task);
-//
-//	free(task.data);
+//				free(task.data);
+//			}
+//		}
+//	}
 
+	for(int i = 0; i < MACHINE_MAX_SIZE; i++)
+	{
+
+	}
+	stateMachineTask_ST temp;
+	temp.cmd1 = 2;
+	temp.cmd2 = 30;
+	temp.length = 10;
+	temp.data = (uint8_t*)malloc(sizeof(uint8_t)*10);
+	for(int i = 0 ; i < 10; i++)
+	{
+		temp.data[i] = i;
+	}
+	send_task(0, temp);
+	free(temp.data);
 }
 
 void StateMachine::machine(int index, uint8_t data)
@@ -133,11 +145,14 @@ void StateMachine::machine(int index, uint8_t data)
 			g_counters.stateMachineCpltCounter[index]++;
 
 		}
+		uint8_t data[100] = {0,};
+		for(uint16_t i = 0 ; i < sizeof(data); i++)
+			data[i] = str->data[i];
 		//add task//
-		add_task(index, str);
+		add_task(index);
 
-		//end task//
 		free(str->data);
+		//end task//
 		str->checksum = 0x00;
 		str->state = 0x00;
 	}
@@ -145,7 +160,12 @@ void StateMachine::machine(int index, uint8_t data)
 
 
 
-void StateMachine::add_task(int index, stateMachine_ST *str)
+
+/*
+ * task management
+ * */
+
+void StateMachine::add_task(int index)
 {
 	stateMachineTask_ST task;
 	//TODO
@@ -157,56 +177,83 @@ void StateMachine::add_task(int index, stateMachine_ST *str)
 		task.cmd2 = this->info[index].cmd2;
 		task.length = this->info[index].length;
 		task.data = (uint8_t*)malloc(sizeof(uint8_t)*task.length);
+		for(int i = 0; i < task.length; i++)
+			task.data[i] = info[index].data[i];
 		task_enqueue(index, task);
-		_DEBUG("Task Enqueue cmd1 = 0x%2X, cmd2 = 0x%2X, length = %d, data_alloc = %d\r\n", task.cmd1, task.cmd2, task.length, task.data);
+		uint32_t getTick = HAL_GetTick();
+		_DEBUG("NUM %d, Task Enqueue 0x%2X, 0x%2X, %d, %d, %d\r\n",index, task.cmd1, task.cmd2, task.length, task.data, getTick);
 	}
 	else
 	{
 		_DEBUG("Task is full \r\n");
 	}
 }
-void StateMachine::get_task(int index, stateMachineTask_ST *task)
+BOOL StateMachine::get_task(int index, stateMachineTask_ST *task)
 {
-	if(!is_task_empty(index))
-	{
-		task_dequeue(index, task);
+	if(index >= MACHINE_MAX_SIZE || index < 0)
+		return -1;
+	return task_dequeue(index, task);
+}
+void StateMachine::send_task(int index, stateMachineTask_ST task)
+{
+	std::vector<uint8_t> sendvector;
+	uint8_t checksum = 0;
+
+	sendvector.push_back(task.cmd1);
+	sendvector.push_back(task.cmd1>>8);
+	sendvector.push_back(task.cmd2);
+	sendvector.push_back(task.cmd2>>8);
+	sendvector.push_back(task.length);
+	sendvector.push_back(task.length>>8);
+	for(int i = 0 ; i < task.length; i++){
+		sendvector.push_back(task.data[i]);
+		checksum+=task.data[i];
 	}
+	sendvector.push_back(checksum);
+
+	uint8_t *sendData;
+
+	sendData = (uint8_t*)malloc(sizeof(uint8_t)*sendvector.size());
+
+	for(uint32_t i = 0 ; i < sendvector.size(); i++)
+	{
+		sendData[i] = sendvector.at(i);
+	}
+
+	free(sendData);
 }
 
 
 
-
-
-
-
-
-
+/*
+ * queue controls
+ * */
 
 void StateMachine::init_task_queue(int index)
 {
-	info[index].qfront = 0;
-	info[index].qrear = 0;
-	info[index].qcount = 0;
-	info[index].qmax_count = 0;
+	info[index].rqfront = 0;
+	info[index].rqrear = 0;
+	info[index].rqcount = 0;
+	info[index].rqmax_count = 0;
 }
 BOOL StateMachine::is_task_empty(int index)
 {
-	return info[index].qfront == info[index].qrear ? true : false;
+	return info[index].rqfront == info[index].rqrear ? true : false;
 }
 BOOL StateMachine::is_task_full(int index)
 {
-	return (info[index].qrear + 1) % TASK_MAX_QUEUE_SIZE == info[index].qfront ? true : false;
+	return (info[index].rqrear + 1) % TASK_MAX_QUEUE_SIZE == info[index].rqfront ? true : false;
 }
 BOOL StateMachine::task_enqueue(int index, stateMachineTask_ST value)
 {
 	if(!is_task_full(index))
 	{
-		int preIndex = info[index].qrear;
-		info[index].qrear = (info[index].qrear + 1) % TASK_MAX_QUEUE_SIZE;
-		info[index].queue[preIndex] = value;
-		info[index].qcount++;
-		if(info[index].qcount > info[index].qmax_count)
-			info[index].qmax_count = info[index].qcount;
+		int preIndex = info[index].rqrear;
+		info[index].rqrear = (info[index].rqrear + 1) % TASK_MAX_QUEUE_SIZE;
+		info[index].rqueue[preIndex] = value;
+		info[index].rqcount++;
+		if(info[index].rqcount > info[index].rqmax_count)
+			info[index].rqmax_count = info[index].rqcount;
 		return true;
 	}
 	return false;
@@ -218,17 +265,21 @@ BOOL StateMachine::task_dequeue(int index, stateMachineTask_ST *value)
 	if (!is_task_empty(index))
 	{
 		/* initial setting */
-		int preIndex = info[index].qfront;
-		info[index].qfront = (info[index].qfront + 1) % TASK_MAX_QUEUE_SIZE;
-		info[index].qcount--;
+		int preIndex = info[index].rqfront;
+		info[index].rqfront = (info[index].rqfront + 1) % TASK_MAX_QUEUE_SIZE;
+		info[index].rqcount--;
 		/* new allocation */
-		*value = info[index].queue[preIndex];
-		value->cmd1 = info[index].cmd1;
-		value->cmd2 = info[index].cmd2;
-		value->length = info[index].length;
+		//*value = info[index].queue[preIndex];
+		value->cmd1 = info[index].rqueue[preIndex].cmd1;
+		value->cmd2 = info[index].rqueue[preIndex].cmd2;
+		value->length = info[index].rqueue[preIndex].length;
 		value->data = (uint8_t*)malloc(sizeof(uint8_t)*value->length);
+		for(int i = 0 ; i < value->length ; i++)
+			value->data[i] = info[index].rqueue[preIndex].data[i];
 		/* free queue memory allocation */
-		free(info[index].queue[preIndex].data);
+		uint32_t getTick = HAL_GetTick();
+		_DEBUG("NUM %d, Task Dequeue 0x%2X, 0x%2X, %d, %d, %d\r\n",index, value->cmd1, value->cmd2, value->length, info[index].rqueue[preIndex].data, getTick);
+		free(info[index].rqueue[preIndex].data);
 		return true;
 	}
 	return false;

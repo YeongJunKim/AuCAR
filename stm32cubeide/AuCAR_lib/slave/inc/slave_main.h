@@ -13,9 +13,10 @@ extern "C" {
 #endif
 
 #include "interrupt_handler.h"
-
-
 int __printf__io__putchar(int ch);
+
+typedef uint8_t control_type;
+#define TYPE_MOTOR 1
 
 void init(void);
 void run(void);

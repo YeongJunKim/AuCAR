@@ -1,8 +1,10 @@
 /*
- * stateMachine.h
+ * AuCAR.h
+ * Task Controller Class
  *
  *  Created on: Jun 23, 2019
  *      Author: colson
+ *      dud3722000@naver.com
  */
 
 /* task map */
@@ -72,129 +74,25 @@
  */
 /*task map end */
 
-#ifndef INC_STATEMACHINE_H_
-#define INC_STATEMACHINE_H_
+#ifndef INC_AUCAR_H_
+#define INC_AUCAR_H_
 
-#include <vector>
 #include "main.h"
-#include "stdlib.h"
-#include "data_struct.h"
 #include "AuCAR_conf.h"
+#include "conf.h"
+#include "stateMachine.h"
 
-
-#ifndef BOOL
-#define BOOL int
-#endif
-
-#define true 1
-#define false 0
-
-#define MACHINE_MAX_SIZE 3
-
-typedef struct _stateMachineTask{
-	uint16_t cmd1;
-	uint16_t cmd2;
-	uint16_t length;
-	uint8_t *data;
-}stateMachineTask_ST;
-
-
-typedef struct _stateMachine{
-	/* state machine */
-	int 	state;
-
-	/* sampled packet */
-	uint16_t 	cmd1;
-	uint16_t 	cmd2;
-	uint16_t 	length;
-	uint8_t 	*data;
-	uint8_t 	checksum;
-	uint16_t 	count;
-
-	/* raw data */
-	std::vector<uint8_t> rdata;
-	/* queue */
-	stateMachineTask_ST rqueue[TASK_MAX_QUEUE_SIZE];
-	int rqfront;
-	int rqrear;
-	int rqcount;
-	int rqmax_count;
-
-	stateMachineTask_ST squeue[TASK_MAX_QUEUE_SIZE];
-	int sqfront;
-	int sqrear;
-	int sqcount;
-	int sqmax_count;
-
-}stateMachine_ST;
-
-
-class StateMachine {
-protected:
-	int device;
-	stateMachine_ST info[MACHINE_MAX_SIZE];
-
-
-
+class AuCAR : public StateMachine{
+private:
+	int seq;
+	stateMachineTask_ST task[TASK_MAX_SIZE];
 public:
-	StateMachine(){
-		for(int i = 0 ; i < MACHINE_MAX_SIZE; i++)
-			machine_init(i);
-	};
-	/*
-	 * state machine
-	 * */
-	void run(void);
-	void machine_init(int index);
-	void machine(int index, uint8_t data);
-
-public:
-	void add_task(int index);
-	BOOL get_task(int index, stateMachineTask_ST *task);
-
-	void send_task(int index, stateMachineTask_ST task);
-
-public:
-
-public:
-	int data_push_back(int index, uint8_t data)
-	{
-		if(index >= MACHINE_MAX_SIZE || index < 0)
-			return -1;
-
-		info[index].rdata.push_back(data);
-		return 1;
-	}
-	int data_clear(int index)
-	{
-		if(index >= MACHINE_MAX_SIZE || index < 0)
-			return -1;
-
-		info[index].rdata.clear();
-		return 1;
-	}
-	int get_vector_size(int index)
-	{
-		if(index >= MACHINE_MAX_SIZE || index < 0)
-			return -1;
-
-		return info[index].rdata.size();
-	}
-
-public:
-	void init_task_queue(int index);
-	BOOL is_task_empty(int index);
-	BOOL is_task_full(int index);
-	BOOL task_enqueue(int index, stateMachineTask_ST value);
-	BOOL task_dequeue(int index, stateMachineTask_ST *value);
-
-public:
-
-
-
+	void get_task(int index);
+	void task_run(int index);
 };
 
 
 
 
-#endif /* INC_STATEMACHINE_H_ */
+
+#endif /* INC_AUCAR_H_ */

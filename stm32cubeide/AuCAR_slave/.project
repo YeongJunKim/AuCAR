@@ -70,6 +70,11 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
+			<name>AuCAR_lib/lib/inc/AuCAR.h</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/inc/AuCAR.h</locationURI>
+		</link>
+		<link>
 			<name>AuCAR_lib/lib/inc/conf.h</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/inc/conf.h</locationURI>
@@ -90,6 +95,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/inc/stateMachine.h</locationURI>
 		</link>
 		<link>
+			<name>AuCAR_lib/lib/periph/periphDelay.h</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/periph/periphDelay.h</locationURI>
+		</link>
+		<link>
 			<name>AuCAR_lib/lib/periph/periphGpio.h</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/periph/periphGpio.h</locationURI>
@@ -103,6 +113,11 @@
 			<name>AuCAR_lib/lib/periph/periphusart.h</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/periph/periphusart.h</locationURI>
+		</link>
+		<link>
+			<name>AuCAR_lib/lib/src/AuCAR.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/src/AuCAR.cpp</locationURI>
 		</link>
 		<link>
 			<name>AuCAR_lib/lib/src/queue.c</name>

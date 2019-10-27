@@ -21,7 +21,10 @@
 
 #include "ros/time.h"
 #include "ros.h"
+
+#include "std_msgs/Header.h"
 #include "std_msgs/String.h"
+#include "geometry_msgs/Twist.h"
 
 
 
@@ -37,13 +40,31 @@ PeriphLED __led2(GPIOC, GPIO_PIN_1, 500);
 PeriphLED __led3(GPIOC, GPIO_PIN_2, 100);
 PeriphLED __led4(GPIOC, GPIO_PIN_3, 500);
 #elif LOCAL_DEVICE == C3
+
 ros::NodeHandle nh;
 
 std_msgs::String str_msg;
+std_msgs::String str_dbgmsg;
+std_msgs::Header str_header;
 
-ros::Publisher pub_chat("chatter", &str_msg);
-
+ros::Publisher pub_chat("AuCAR/chatter", &str_msg);
+ros::Publisher pub_debub("AuCAR/debug", &str_dbgmsg);
 char hello[] = "Hello world!";
+char dbgmsg[] = "debuging";
+
+ros::Publisher pub_header("AuCAR/header", &str_header);
+
+
+void module0_cb(const geometry_msgs::Twist& msg);
+void module1_cb(const geometry_msgs::Twist& msg);
+void module2_cb(const geometry_msgs::Twist& msg);
+void module3_cb(const geometry_msgs::Twist& msg);
+
+ros::Subscriber<geometry_msgs::Twist> module0_sub("AuCAR/module0", &module0_cb);
+ros::Subscriber<geometry_msgs::Twist> module1_sub("AuCAR/module1", &module1_cb);
+ros::Subscriber<geometry_msgs::Twist> module2_sub("AuCAR/module2", &module2_cb);
+ros::Subscriber<geometry_msgs::Twist> module3_sub("AuCAR/module3", &module3_cb);
+
 
 
 PeriphGPIO __c1nrst(nrst_c1_GPIO_Port, nrst_c1_Pin, 1000);
@@ -65,9 +86,9 @@ PeriphUsart __usart2(&huart2);
 PeriphUsart __usart3(&huart3);
 
 #if LED_TYPE == C3_LED
-PeriphGPIO __led1(GPIOA, GPIO_PIN_4, 100);
+PeriphGPIO __led1(GPIOA, GPIO_PIN_4, 1000);
 PeriphGPIO __led2(GPIOA, GPIO_PIN_5, 500);
-PeriphGPIO __led3(GPIOA, GPIO_PIN_6, 100);
+PeriphGPIO __led3(GPIOA, GPIO_PIN_6, 1000);
 PeriphGPIO __led4(GPIOA, GPIO_PIN_7, 500);
 #else
 PeriphGPIO __led1(GPIOC, GPIO_PIN_4, 100);
@@ -95,9 +116,18 @@ int __printf__io__putchar(int ch)
 
 void init(void) {
 	/* ros init */
+
 	nh.initNode();
 	nh.advertise(pub_chat);
+	nh.advertise(pub_header);
+
+	nh.subscribe(module0_sub);
+	nh.subscribe(module1_sub);
+	nh.subscribe(module2_sub);
+	nh.subscribe(module3_sub);
+
 	_DEBUG("ROS init OK.\r\n");
+
 	/* peripheral init */
 	HAL_TIM_Base_Start_IT(&htim6);
 	HAL_TIM_Base_Start_IT(&htim7);
@@ -114,7 +144,7 @@ void init(void) {
 	_DEBUG("Default IO init OK.\r\n");
 
 	__usart1.init();
-	__usart2.init();
+	//__usart2.init();
 	__usart3.init();
 	_DEBUG("Usart init OK.\r\n");
 	_DEBUG("All init OK.\r\n");
@@ -122,6 +152,12 @@ void init(void) {
 
 uint32_t nowtick = 0;
 uint32_t pasttick = 0;
+
+uint32_t rosnowtick = 0;
+uint32_t rospasttick = 0;
+
+uint8_t abc = 0;
+uint8_t cba = 0;
 
 void run(void) {
 
@@ -161,17 +197,32 @@ void run(void) {
 	cnt = 0;
 	/* test sender */
 	nowtick = HAL_GetTick();
-	if(nowtick - pasttick > 100)
+	if(nowtick - pasttick > 1000)
 	{
-		uint8_t sendData[10] = {0xFF, 0xFF, 0x02, 0x00, 0x03, 0x00, 0x01, 0x00, 0x05, 0x05};
-		__usart1.write(sendData, sizeof(sendData));
-		__usart3.write(sendData, sizeof(sendData));
+//		uint8_t arr[50];
+//		uint8_t checksum = 0;
+//		for(int i = 0 ; i < 50; i++){
+//			arr[i] = i;
+//			checksum += arr[i];
+//		}
 
-		pub_chat.publish(&str_msg);
-		nh.spinOnce();
+//		uint8_t sendData1[8] = {0xFF, 0xFF, 0x05, 0x00, 0x04, 0x00, 0xF4, 0x01};
+//		sendData1[6] = (uint8_t)50;
+//		sendData1[7] = (uint8_t)50 >> 8;
+//		__usart1.write(sendData1, sizeof(sendData1));
+//		__usart3.write(sendData1, sizeof(sendData1));
+//		__usart1.write(arr, sizeof(arr));
+//		__usart3.write(arr, sizeof(arr));
+//		__usart1.write(&checksum, sizeof(checksum));
+//		__usart3.write(&checksum, sizeof(checksum));
+
+
+
 
 		pasttick = nowtick;
 	}
+
+
 
 	/* test sender end */
 	/*
@@ -200,6 +251,23 @@ void run(void) {
 	/*
 	 * local functions
 	 * PERIPHERAL - LED, PWM, ... , etc.
+	 * */
+
+	/*
+	 * ROS task
+	 * */
+	rosnowtick = HAL_GetTick();
+	if(rosnowtick - rospasttick > 100)
+	{
+		str_msg.data = hello;
+		str_header.seq++;
+		pub_header.publish(&str_header);
+		pub_chat.publish(&str_msg);
+		rospasttick = rosnowtick;
+	}
+	nh.spinOnce();
+	/*
+	 * ROS task end
 	 * */
 }
 
@@ -292,3 +360,138 @@ void uart_rx_callback(UART_HandleTypeDef *huart)
 	}
 }
 
+//to C1 chip
+void module0_cb(const geometry_msgs::Twist& msg){
+	__led1.setPeriod(50);
+	int x = (int)(msg.linear.x * 100);
+	int z = (int)(msg.angular.z * 100);
+	static uint8_t seq = 0;
+	uint8_t sendData[18] = {0,};
+	uint8_t checksum = 0;
+	uint8_t id = 0x10;
+	uint16_t cmd1 = 0x1234;
+	uint16_t cmd2 = 0x5678;
+	uint16_t len = 9;
+	sendData[0] = 0xFF;
+	sendData[1] = 0xFF;
+	sendData[2] = id;
+	sendData[3] = cmd1 >> 8;
+	sendData[4] = cmd2;
+	sendData[5] = cmd2 >> 8;
+	sendData[6] = len;
+	sendData[7] = len >> 8;
+	sendData[8] = x;
+	sendData[9] = x >> 8;
+	sendData[10] = x >> 16;
+	sendData[11] = x >> 24;
+	sendData[12] = z;
+	sendData[13] = z >> 8;
+	sendData[14] = z >> 16;
+	sendData[15] = z >> 24;
+	sendData[16] = seq++;
+	for(int i = 8 ; i < 17; i++)
+		checksum += sendData[i];
+	sendData[17] = checksum;
+	__usart1.write(sendData, sizeof(sendData));
+}
+void module1_cb(const geometry_msgs::Twist& msg){
+	__led2.setPeriod(50);
+	int x = (int)(msg.linear.x * 100);
+	int z = (int)(msg.angular.z * 100);
+	static uint8_t seq = 0;
+	uint8_t sendData[18] = {0,};
+	uint8_t checksum = 0;
+	uint8_t id = 0x20;
+	uint16_t cmd1 = 0x1234;
+	uint16_t cmd2 = 0x5678;
+	uint16_t len = 9;
+	sendData[0] = 0xFF;
+	sendData[1] = 0xFF;
+	sendData[2] = id;
+	sendData[3] = cmd1 >> 8;
+	sendData[4] = cmd2;
+	sendData[5] = cmd2 >> 8;
+	sendData[6] = len;
+	sendData[7] = len >> 8;
+	sendData[8] = x;
+	sendData[9] = x >> 8;
+	sendData[10] = x >> 16;
+	sendData[11] = x >> 24;
+	sendData[12] = z;
+	sendData[13] = z >> 8;
+	sendData[14] = z >> 16;
+	sendData[15] = z >> 24;
+	sendData[16] = seq++;
+	for(int i = 8 ; i < 17; i++)
+		checksum += sendData[i];
+	sendData[17] = checksum;
+	__usart1.write(sendData, sizeof(sendData));
+}
+
+//to c2 chip
+void module2_cb(const geometry_msgs::Twist& msg){
+	__led3.setPeriod(50);
+	int x = (int)(msg.linear.x * 100);
+	int z = (int)(msg.angular.z * 100);
+	static uint8_t seq = 0;
+	uint8_t sendData[18] = {0,};
+	uint8_t checksum = 0;
+	uint8_t id = 0x10;
+	uint16_t cmd1 = 0x1234;
+	uint16_t cmd2 = 0x5678;
+	uint16_t len = 9;
+	sendData[0] = 0xFF;
+	sendData[1] = 0xFF;
+	sendData[2] = id;
+	sendData[3] = cmd1 >> 8;
+	sendData[4] = cmd2;
+	sendData[5] = cmd2 >> 8;
+	sendData[6] = len;
+	sendData[7] = len >> 8;
+	sendData[8] = x;
+	sendData[9] = x >> 8;
+	sendData[10] = x >> 16;
+	sendData[11] = x >> 24;
+	sendData[12] = z;
+	sendData[13] = z >> 8;
+	sendData[14] = z >> 16;
+	sendData[15] = z >> 24;
+	sendData[16] = seq++;
+	for(int i = 8 ; i < 17; i++)
+		checksum += sendData[i];
+	sendData[17] = checksum;
+	__usart3.write(sendData, sizeof(sendData));
+}
+void module3_cb(const geometry_msgs::Twist& msg){
+	__led4.setPeriod(50);
+	int x = (int)(msg.linear.x * 100);
+	int z = (int)(msg.angular.z * 100);
+	static uint8_t seq = 0;
+	uint8_t sendData[18] = {0,};
+	uint8_t checksum = 0;
+	uint8_t id = 0x20;
+	uint16_t cmd1 = 0x1234;
+	uint16_t cmd2 = 0x5678;
+	uint16_t len = 9;
+	sendData[0] = 0xFF;
+	sendData[1] = 0xFF;
+	sendData[2] = id;
+	sendData[3] = cmd1 >> 8;
+	sendData[4] = cmd2;
+	sendData[5] = cmd2 >> 8;
+	sendData[6] = len;
+	sendData[7] = len >> 8;
+	sendData[8] = x;
+	sendData[9] = x >> 8;
+	sendData[10] = x >> 16;
+	sendData[11] = x >> 24;
+	sendData[12] = z;
+	sendData[13] = z >> 8;
+	sendData[14] = z >> 16;
+	sendData[15] = z >> 24;
+	sendData[16] = seq++;
+	for(int i = 8 ; i < 17; i++)
+		checksum += sendData[i];
+	sendData[17] = checksum;
+	__usart3.write(sendData, sizeof(sendData));
+}

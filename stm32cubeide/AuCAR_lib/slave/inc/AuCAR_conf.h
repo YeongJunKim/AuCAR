@@ -29,6 +29,7 @@
 #endif
 
 #define TASK_MAX_QUEUE_SIZE 128
+#define TASK_MAX_SIZE 10
 
 
 #define C3_LED 			0x01
