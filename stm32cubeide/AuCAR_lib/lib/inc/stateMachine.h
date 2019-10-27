@@ -75,9 +75,8 @@
 #ifndef INC_STATEMACHINE_H_
 #define INC_STATEMACHINE_H_
 
-
+#include <vector>
 #include "main.h"
-#include "vector"
 #include "stdlib.h"
 #include "data_struct.h"
 #include "AuCAR_conf.h"

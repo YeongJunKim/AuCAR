@@ -1,11 +1,11 @@
 /*
- * master_main.c
+ * master_main.cpp
  *
  *  Created on: Jun 22, 2019
  *      Author: colson
  */
 
-#include <periphGPIO.h>
+#include <periphGpio.h>
 #include <periphusart.h>
 #include <periphMotor.h>
 #include <periphDelay.h>
@@ -15,7 +15,6 @@
 
 #include "AuCAR_conf.h"
 #include "slave_main.h"
-#include "stateMachine.h"
 #include "pid_control_long.h"
 
 #include "usart.h"
@@ -37,6 +36,7 @@ PeriphGPIO __led4(GPIOC, GPIO_PIN_3, 500);
 PeriphUsart __usart2(&huart2);
 PeriphUsart __usart4(&huart4);
 
+void task_run(control_type type, stateMachineTask_ST task);
 
 #elif LOCAL_DEVICE == C2
 PeriphGPIO __led1(GPIOC, GPIO_PIN_0, 100);
@@ -142,26 +142,26 @@ void run(void) {
 
 
 	/* test sender */
-	nowtick = HAL_GetTick();
-	if(nowtick - pasttick > 5)
-	{
-		uint16_t size = 20;
-		uint8_t arr[size];
-		uint8_t checksum = 0;
-		for(int i = 0 ; i < size; i++){
-			arr[i] = i;
-			checksum += arr[i];
-		}
-		uint8_t sendData1[8] = {0xFF, 0xFF, 0x05, 0x00, 0x04, 0x00, 0xF4, 0x01};
-		sendData1[6] = (uint8_t)size;
-		sendData1[7] = (uint8_t)(size >> 8);
-		__usart2.write(sendData1, sizeof(sendData1));
-		__usart2.write(arr, sizeof(arr));
-		__usart2.write(&checksum, sizeof(checksum));
-
-		pasttick = nowtick;
-
-	}
+//	nowtick = HAL_GetTick();
+//	if(nowtick - pasttick > 5)
+//	{
+//		uint16_t size = 20;
+//		uint8_t arr[size];
+//		uint8_t checksum = 0;
+//		for(int i = 0 ; i < size; i++){
+//			arr[i] = i;
+//			checksum += arr[i];
+//		}
+//		uint8_t sendData1[8] = {0xFF, 0xFF, 0x05, 0x00, 0x04, 0x00, 0xF4, 0x01};
+//		sendData1[6] = (uint8_t)size;
+//		sendData1[7] = (uint8_t)(size >> 8);
+//		__usart2.write(sendData1, sizeof(sendData1));
+//		__usart2.write(arr, sizeof(arr));
+//		__usart2.write(&checksum, sizeof(checksum));
+//
+//		pasttick = nowtick;
+//
+//	}
 
 
 	/* test sender end */
@@ -180,7 +180,13 @@ void run(void) {
 	 * state machine
 	 * */
 
+	stateMachineTask_ST get = {0,};
 	g_stateMachines.run();
+	BOOL state = g_stateMachines.get_task(0, &get);
+	if(state == true)
+	{
+		task_run(TYPE_MOTOR, get);
+	}
 
 	/*
 	 * enqueue data
@@ -200,7 +206,49 @@ void led_run(void)
 	__led4.run();
 }
 
+void task_run(control_type type, stateMachineTask_ST task)
+{
+	if(type == TYPE_MOTOR)
+	{
+		//motor1 setting
+		uint16_t cmd2 = task.cmd2;
+		uint16_t len = task.length;
+		uint16_t seq = task.data[len-1];
+		int x = 0;
+		x = x | (task.data[0]);
+		x = x | (task.data[1] << 8);
+		x = x | (task.data[2] << 16);
+		x = x | (task.data[3] << 24);
+		int z = 0;
+		z = z | (task.data[4]);
+		z = z | (task.data[5] << 8);
+		z = z | (task.data[6] << 16);
+		z = z | (task.data[7] << 24);
 
+		x = x/100;
+		z = z/100;
+
+		if((task.cmd1 & 0x00FF) == 0x0010)
+		{
+			//motor 1
+			__led1.setPeriod(50);
+			__led2.setPeriod(50);
+			g_targetEncoder[0] = (long)x;
+			g_targetEncoder[1] = (long)z;
+			_DEBUG("targetEncoder[0] : %d \r\ntargetEncoder[1] : %d\r\n",x,z);
+		}
+		else if((task.cmd1 & 0x00FF) == 0x0020)
+		{
+			//motor 2
+			__led3.setPeriod(50);
+			__led4.setPeriod(50);
+			g_targetEncoder[2] = (long)x;
+			g_targetEncoder[3] = (long)z;
+			_DEBUG("targetEncoder[2] : %d \r\ntargetEncoder[3] : %d\r\n",x,z);
+		}
+
+	}
+}
 
 
 
@@ -213,17 +261,18 @@ uint32_t ppp = 0;
 __weak void timer_1s(void)
 {
 	//TODO
-	if(g_stateMachines.get_vector_size(0) || g_stateMachines.get_vector_size(1) || g_stateMachines.get_vector_size(2)){
-		_DEBUG("TIME SEQUENCE : %d (sec) \r\n", pp);
-		_DEBUG("vector size\r\nvector0 size = %d \r\nvector1 size = %d \r\nvector2 size = %d\r\n"
-				,g_stateMachines.get_vector_size(0), g_stateMachines.get_vector_size(1),g_stateMachines.get_vector_size(2));
-
-	}
-	else if(pp % 10 == 0){
-		_DEBUG("10s count = %d \r\n", ppp);
-		ppp++;
-	}
-	pp++;
+//	if(g_stateMachines.get_vector_size(0) || g_stateMachines.get_vector_size(1) || g_stateMachines.get_vector_size(2)){
+//		_DEBUG("TIME SEQUENCE : %d (sec) \r\n", pp);
+//		_DEBUG("vector size\r\nvector0 size = %d \r\nvector1 size = %d \r\nvector2 size = %d\r\n"
+//				,g_stateMachines.get_vector_size(0), g_stateMachines.get_vector_size(1),g_stateMachines.get_vector_size(2));
+//
+//	}
+//	else if(pp % 10 == 0){
+//		_DEBUG("10s count = %d \r\n", ppp);
+//		ppp++;
+//	}
+//	pp++;
+	//_DEBUG("timer 1s \r\n");
 }
 /*
  * motor control

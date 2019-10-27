@@ -41,22 +41,22 @@ void StateMachine::run(void) {
 		data_clear(i);
 	}
 
-	stateMachineTask_ST task;
-	for(int i = 0; i < MACHINE_MAX_SIZE; i++)
-	{
-		while(1)
-		{
-			if(!get_task(i, &task))
-				break;
-			else
-			{
-				uint32_t getTick = HAL_GetTick();
-				_DEBUG("NUM %d, Task Dequeue 0x%2X, 0x%2X, %d, %d, %d \r\n",i,task.cmd1,task.cmd2,task.length,task.data, getTick);
-
-				free(task.data);
-			}
-		}
-	}
+//	stateMachineTask_ST task;
+//	for(int i = 0; i < MACHINE_MAX_SIZE; i++)
+//	{
+//		while(1)
+//		{
+//			if(!get_task(i, &task))
+//				break;
+//			else
+//			{
+//				uint32_t getTick = HAL_GetTick();
+//				_DEBUG("NUM %d, Task Dequeue 0x%2X, 0x%2X, %d, %d, %d \r\n",i,task.cmd1,task.cmd2,task.length,task.data, getTick);
+//
+//				free(task.data);
+//			}
+//		}
+//	}
 
 	for(int i = 0; i < MACHINE_MAX_SIZE; i++)
 	{
@@ -145,6 +145,9 @@ void StateMachine::machine(int index, uint8_t data)
 			g_counters.stateMachineCpltCounter[index]++;
 
 		}
+		uint8_t data[100] = {0,};
+		for(uint16_t i = 0 ; i < sizeof(data); i++)
+			data[i] = str->data[i];
 		//add task//
 		add_task(index);
 
@@ -274,6 +277,8 @@ BOOL StateMachine::task_dequeue(int index, stateMachineTask_ST *value)
 		for(int i = 0 ; i < value->length ; i++)
 			value->data[i] = info[index].rqueue[preIndex].data[i];
 		/* free queue memory allocation */
+		uint32_t getTick = HAL_GetTick();
+		_DEBUG("NUM %d, Task Dequeue 0x%2X, 0x%2X, %d, %d, %d\r\n",index, value->cmd1, value->cmd2, value->length, info[index].rqueue[preIndex].data, getTick);
 		free(info[index].rqueue[preIndex].data);
 		return true;
 	}

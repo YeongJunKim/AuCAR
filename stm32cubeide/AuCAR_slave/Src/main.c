@@ -27,7 +27,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "slave_main.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

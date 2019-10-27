@@ -44,10 +44,13 @@ PeriphLED __led4(GPIOC, GPIO_PIN_3, 500);
 ros::NodeHandle nh;
 
 std_msgs::String str_msg;
+std_msgs::String str_dbgmsg;
 std_msgs::Header str_header;
 
 ros::Publisher pub_chat("AuCAR/chatter", &str_msg);
+ros::Publisher pub_debub("AuCAR/debug", &str_dbgmsg);
 char hello[] = "Hello world!";
+char dbgmsg[] = "debuging";
 
 ros::Publisher pub_header("AuCAR/header", &str_header);
 
@@ -83,9 +86,9 @@ PeriphUsart __usart2(&huart2);
 PeriphUsart __usart3(&huart3);
 
 #if LED_TYPE == C3_LED
-PeriphGPIO __led1(GPIOA, GPIO_PIN_4, 100);
+PeriphGPIO __led1(GPIOA, GPIO_PIN_4, 1000);
 PeriphGPIO __led2(GPIOA, GPIO_PIN_5, 500);
-PeriphGPIO __led3(GPIOA, GPIO_PIN_6, 100);
+PeriphGPIO __led3(GPIOA, GPIO_PIN_6, 1000);
 PeriphGPIO __led4(GPIOA, GPIO_PIN_7, 500);
 #else
 PeriphGPIO __led1(GPIOC, GPIO_PIN_4, 100);
@@ -196,22 +199,22 @@ void run(void) {
 	nowtick = HAL_GetTick();
 	if(nowtick - pasttick > 1000)
 	{
-		uint8_t arr[50];
-		uint8_t checksum = 0;
-		for(int i = 0 ; i < 50; i++){
-			arr[i] = i;
-			checksum += arr[i];
-		}
+//		uint8_t arr[50];
+//		uint8_t checksum = 0;
+//		for(int i = 0 ; i < 50; i++){
+//			arr[i] = i;
+//			checksum += arr[i];
+//		}
 
-		uint8_t sendData1[8] = {0xFF, 0xFF, 0x05, 0x00, 0x04, 0x00, 0xF4, 0x01};
-		sendData1[6] = (uint8_t)50;
-		sendData1[7] = (uint8_t)50 >> 8;
-		__usart1.write(sendData1, sizeof(sendData1));
-		__usart3.write(sendData1, sizeof(sendData1));
-		__usart1.write(arr, sizeof(arr));
-		__usart3.write(arr, sizeof(arr));
-		__usart1.write(&checksum, sizeof(checksum));
-		__usart3.write(&checksum, sizeof(checksum));
+//		uint8_t sendData1[8] = {0xFF, 0xFF, 0x05, 0x00, 0x04, 0x00, 0xF4, 0x01};
+//		sendData1[6] = (uint8_t)50;
+//		sendData1[7] = (uint8_t)50 >> 8;
+//		__usart1.write(sendData1, sizeof(sendData1));
+//		__usart3.write(sendData1, sizeof(sendData1));
+//		__usart1.write(arr, sizeof(arr));
+//		__usart3.write(arr, sizeof(arr));
+//		__usart1.write(&checksum, sizeof(checksum));
+//		__usart3.write(&checksum, sizeof(checksum));
 
 
 
@@ -219,20 +222,7 @@ void run(void) {
 		pasttick = nowtick;
 	}
 
-	/*
-	 * ROS task
-	 *
-	 * */
-	rosnowtick = HAL_GetTick();
-	if(rosnowtick - rospasttick > 1000)
-	{
-		str_msg.data = hello;
-		str_header.seq = 100;
-		pub_chat.publish(&str_header);
-		pub_chat.publish(&str_msg);
-		nh.spinOnce();
-		rospasttick = rosnowtick;
-	}
+
 
 	/* test sender end */
 	/*
@@ -261,6 +251,23 @@ void run(void) {
 	/*
 	 * local functions
 	 * PERIPHERAL - LED, PWM, ... , etc.
+	 * */
+
+	/*
+	 * ROS task
+	 * */
+	rosnowtick = HAL_GetTick();
+	if(rosnowtick - rospasttick > 100)
+	{
+		str_msg.data = hello;
+		str_header.seq++;
+		pub_header.publish(&str_header);
+		pub_chat.publish(&str_msg);
+		rospasttick = rosnowtick;
+	}
+	nh.spinOnce();
+	/*
+	 * ROS task end
 	 * */
 }
 
@@ -353,15 +360,138 @@ void uart_rx_callback(UART_HandleTypeDef *huart)
 	}
 }
 
+//to C1 chip
 void module0_cb(const geometry_msgs::Twist& msg){
-	__led1.setPeriod(100);
+	__led1.setPeriod(50);
+	int x = (int)(msg.linear.x * 100);
+	int z = (int)(msg.angular.z * 100);
+	static uint8_t seq = 0;
+	uint8_t sendData[18] = {0,};
+	uint8_t checksum = 0;
+	uint8_t id = 0x10;
+	uint16_t cmd1 = 0x1234;
+	uint16_t cmd2 = 0x5678;
+	uint16_t len = 9;
+	sendData[0] = 0xFF;
+	sendData[1] = 0xFF;
+	sendData[2] = id;
+	sendData[3] = cmd1 >> 8;
+	sendData[4] = cmd2;
+	sendData[5] = cmd2 >> 8;
+	sendData[6] = len;
+	sendData[7] = len >> 8;
+	sendData[8] = x;
+	sendData[9] = x >> 8;
+	sendData[10] = x >> 16;
+	sendData[11] = x >> 24;
+	sendData[12] = z;
+	sendData[13] = z >> 8;
+	sendData[14] = z >> 16;
+	sendData[15] = z >> 24;
+	sendData[16] = seq++;
+	for(int i = 8 ; i < 17; i++)
+		checksum += sendData[i];
+	sendData[17] = checksum;
+	__usart1.write(sendData, sizeof(sendData));
 }
 void module1_cb(const geometry_msgs::Twist& msg){
-	__led2.setPeriod(100);
+	__led2.setPeriod(50);
+	int x = (int)(msg.linear.x * 100);
+	int z = (int)(msg.angular.z * 100);
+	static uint8_t seq = 0;
+	uint8_t sendData[18] = {0,};
+	uint8_t checksum = 0;
+	uint8_t id = 0x20;
+	uint16_t cmd1 = 0x1234;
+	uint16_t cmd2 = 0x5678;
+	uint16_t len = 9;
+	sendData[0] = 0xFF;
+	sendData[1] = 0xFF;
+	sendData[2] = id;
+	sendData[3] = cmd1 >> 8;
+	sendData[4] = cmd2;
+	sendData[5] = cmd2 >> 8;
+	sendData[6] = len;
+	sendData[7] = len >> 8;
+	sendData[8] = x;
+	sendData[9] = x >> 8;
+	sendData[10] = x >> 16;
+	sendData[11] = x >> 24;
+	sendData[12] = z;
+	sendData[13] = z >> 8;
+	sendData[14] = z >> 16;
+	sendData[15] = z >> 24;
+	sendData[16] = seq++;
+	for(int i = 8 ; i < 17; i++)
+		checksum += sendData[i];
+	sendData[17] = checksum;
+	__usart1.write(sendData, sizeof(sendData));
 }
+
+//to c2 chip
 void module2_cb(const geometry_msgs::Twist& msg){
-	__led3.setPeriod(100);
+	__led3.setPeriod(50);
+	int x = (int)(msg.linear.x * 100);
+	int z = (int)(msg.angular.z * 100);
+	static uint8_t seq = 0;
+	uint8_t sendData[18] = {0,};
+	uint8_t checksum = 0;
+	uint8_t id = 0x10;
+	uint16_t cmd1 = 0x1234;
+	uint16_t cmd2 = 0x5678;
+	uint16_t len = 9;
+	sendData[0] = 0xFF;
+	sendData[1] = 0xFF;
+	sendData[2] = id;
+	sendData[3] = cmd1 >> 8;
+	sendData[4] = cmd2;
+	sendData[5] = cmd2 >> 8;
+	sendData[6] = len;
+	sendData[7] = len >> 8;
+	sendData[8] = x;
+	sendData[9] = x >> 8;
+	sendData[10] = x >> 16;
+	sendData[11] = x >> 24;
+	sendData[12] = z;
+	sendData[13] = z >> 8;
+	sendData[14] = z >> 16;
+	sendData[15] = z >> 24;
+	sendData[16] = seq++;
+	for(int i = 8 ; i < 17; i++)
+		checksum += sendData[i];
+	sendData[17] = checksum;
+	__usart3.write(sendData, sizeof(sendData));
 }
 void module3_cb(const geometry_msgs::Twist& msg){
-	__led4.setPeriod(100);
+	__led4.setPeriod(50);
+	int x = (int)(msg.linear.x * 100);
+	int z = (int)(msg.angular.z * 100);
+	static uint8_t seq = 0;
+	uint8_t sendData[18] = {0,};
+	uint8_t checksum = 0;
+	uint8_t id = 0x20;
+	uint16_t cmd1 = 0x1234;
+	uint16_t cmd2 = 0x5678;
+	uint16_t len = 9;
+	sendData[0] = 0xFF;
+	sendData[1] = 0xFF;
+	sendData[2] = id;
+	sendData[3] = cmd1 >> 8;
+	sendData[4] = cmd2;
+	sendData[5] = cmd2 >> 8;
+	sendData[6] = len;
+	sendData[7] = len >> 8;
+	sendData[8] = x;
+	sendData[9] = x >> 8;
+	sendData[10] = x >> 16;
+	sendData[11] = x >> 24;
+	sendData[12] = z;
+	sendData[13] = z >> 8;
+	sendData[14] = z >> 16;
+	sendData[15] = z >> 24;
+	sendData[16] = seq++;
+	for(int i = 8 ; i < 17; i++)
+		checksum += sendData[i];
+	sendData[17] = checksum;
+	__usart3.write(sendData, sizeof(sendData));
 }
