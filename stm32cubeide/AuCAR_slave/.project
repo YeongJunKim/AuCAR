@@ -75,6 +75,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/inc/AuCAR.h</locationURI>
 		</link>
 		<link>
+			<name>AuCAR_lib/lib/inc/absoluteEncoder.h</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/inc/absoluteEncoder.h</locationURI>
+		</link>
+		<link>
 			<name>AuCAR_lib/lib/inc/conf.h</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/inc/conf.h</locationURI>
@@ -118,6 +123,11 @@
 			<name>AuCAR_lib/lib/src/AuCAR.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/src/AuCAR.cpp</locationURI>
+		</link>
+		<link>
+			<name>AuCAR_lib/lib/src/absoluteEncoder.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/src/absoluteEncoder.cpp</locationURI>
 		</link>
 		<link>
 			<name>AuCAR_lib/lib/src/queue.c</name>

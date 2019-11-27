@@ -107,10 +107,13 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM6_Init();
   MX_TIM7_Init();
+  MX_TIM14_Init();
+  MX_TIM10_Init();
   /* USER CODE BEGIN 2 */
 
   HAL_TIM_Base_Start_IT(&htim6);
   HAL_TIM_Base_Start_IT(&htim7);
+  HAL_TIM_Base_Start_IT(&htim14);
 
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIMEx_PWMN_Start(&htim1, TIM_CHANNEL_1);
@@ -127,10 +130,10 @@ int main(void)
   HAL_TIM_Encoder_Start(&htim8,TIM_CHANNEL_ALL);
 
 
-  TIM1->CCR1 = 100;
-  TIM1->CCR2 = 300;
-  TIM1->CCR3 = 700;
-  TIM1->CCR4 = 900;
+  TIM1->CCR1 = 0;
+  TIM1->CCR2 = 0;
+  TIM1->CCR3 = 0;
+  TIM1->CCR4 = 0;
 
   init();
   /* USER CODE END 2 */

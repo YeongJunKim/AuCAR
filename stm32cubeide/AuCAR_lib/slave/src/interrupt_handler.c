@@ -18,13 +18,21 @@ COUNTERS g_counters;
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-	if(htim->Instance == TIM6)
+	if(htim->Instance == TIM10)
 	{
-		timer_1s();
+		//timer_15us();
 	}
-	if(htim->Instance == TIM7)
+	else if(htim->Instance == TIM14)
+	{
+		timer_15us();
+	}
+	else if(htim->Instance == TIM7)
 	{
 		timer_10ms();
+	}
+	else if(htim->Instance == TIM6)
+	{
+		timer_1s();
 	}
 }
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)

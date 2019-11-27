@@ -21,7 +21,7 @@
 #include "tim.h"
 
 #include "AuCAR.h"
-
+#include "absoluteEncoder.h"
 
 #if LOCAL_DEVICE == C1
 /* PeriphGPIO(MODULE, PIN, Period) */
@@ -84,6 +84,8 @@ uint16_t g_getEncoder[4] = {0,};
 uint16_t g_pastEncoder[4] = {0,};
 long g_deltaEncoder[4] = {0,};
 long g_targetEncoder[4] = {0,};
+long g_targetAngle[4] = {0,};
+long g_deltaEncoderCnt[4] = {0,};
 /* motor control end */
 
 int __printf__io__putchar(int ch)
@@ -277,6 +279,11 @@ __weak void timer_1s(void)
 /*
  * motor control
  * */
+__weak void timer_15us(void)
+{
+	abs_encoder_step_calculator();
+
+}
 __weak void timer_10ms(void)
 {
 
@@ -299,12 +306,16 @@ __weak void timer_10ms(void)
 			g_deltaEncoder[i] = -(65535 - g_getEncoder[i]);
 		else
 			g_deltaEncoder[i] = g_getEncoder[i];
+		g_deltaEncoderCnt[i] += g_deltaEncoder[i];
 	}
+
 
 	TIM5->CNT = 0;
 	TIM8->CNT = 0;
 	TIM3->CNT = 0;
 	TIM4->CNT = 0;
+
+
 
 	//uint32_t targetTimer[4] = {TIM5,TIM8,TIM3,TIM4};
 	for(int i = 0 ; i < 4; i++)
@@ -323,17 +334,17 @@ __weak void timer_10ms(void)
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
 		TIM1->CCR1 = (uint16_t)(motor[0].nowOutput);
 	}
-	if(motor[1].nowOutput < 0)
-	{
-
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_SET);
-		TIM1->CCR2 = (uint16_t)(-motor[1].nowOutput);
-	}
-	else
-	{
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_RESET);
-		TIM1->CCR2 = (uint16_t)(motor[1].nowOutput);
-	}
+//	if(motor[1].nowOutput < 0)
+//	{
+//
+//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_SET);
+//		TIM1->CCR2 = (uint16_t)(-motor[1].nowOutput);
+//	}
+//	else
+//	{
+//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_RESET);
+//		TIM1->CCR2 = (uint16_t)(motor[1].nowOutput);
+//	}
 	if(motor[2].nowOutput < 0)
 	{
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET);
@@ -344,16 +355,16 @@ __weak void timer_10ms(void)
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_RESET);
 		TIM1->CCR3 = (uint16_t)(motor[2].nowOutput);
 	}
-	if(motor[3].nowOutput < 0)
-	{
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);
-		TIM1->CCR4 = (uint16_t)(-motor[3].nowOutput);
-	}
-	else
-	{
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);
-		TIM1->CCR4 = (uint16_t)(motor[3].nowOutput);
-	}
+//	if(motor[3].nowOutput < 0)
+//	{
+//		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);
+//		TIM1->CCR4 = (uint16_t)(-motor[3].nowOutput);
+//	}
+//	else
+//	{
+//		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);
+//		TIM1->CCR4 = (uint16_t)(motor[3].nowOutput);
+//	}
 }
 
 void uart_tx_callback(UART_HandleTypeDef *huart)
