@@ -1,4 +1,4 @@
-#AuCAR
+# AuCAR
 #### controller "AuCAR" for swerve driving.
 ###### operate with ros
 ###### toolchain : STM32CUBEIDE 1.0.1
@@ -8,5 +8,6 @@
 
 
 
-![main_shot](./image/image_0.jpg)
-![sub_shot](./image/image_1.jpg)
+![main_shot](./image/image_2.jpg)
+![sub_shot1](./image/image_3.jpg)
+![sub_shot2](./image/image_4.jpg)
