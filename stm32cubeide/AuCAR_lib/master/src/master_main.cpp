@@ -22,10 +22,13 @@
 #include "ros/time.h"
 #include "ros.h"
 
+#include "std_msgs/Byte.h"
+#include "std_msgs/ByteMultiArray.h"
 #include "std_msgs/Header.h"
 #include "std_msgs/String.h"
 #include "geometry_msgs/Twist.h"
 
+#define DEBUG
 
 
 
@@ -55,15 +58,46 @@ char dbgmsg[] = "debuging";
 ros::Publisher pub_header("AuCAR/header", &str_header);
 
 
+/* mode selection callback */
+void command_cb(const std_msgs::Byte& msg);
+
+/* swarve drive mode callback */
 void module0_cb(const geometry_msgs::Twist& msg);
 void module1_cb(const geometry_msgs::Twist& msg);
 void module2_cb(const geometry_msgs::Twist& msg);
 void module3_cb(const geometry_msgs::Twist& msg);
 
+/* c1 control callback */
+void motor0_cb(const geometry_msgs::Twist& msg);
+void motor1_cb(const geometry_msgs::Twist& msg);
+void motor2_cb(const geometry_msgs::Twist& msg);
+void motor3_cb(const geometry_msgs::Twist& msg);
+
+/* c2 control callback */
+void motor4_cb(const geometry_msgs::Twist& msg);
+void motor5_cb(const geometry_msgs::Twist& msg);
+void motor6_cb(const geometry_msgs::Twist& msg);
+void motor7_cb(const geometry_msgs::Twist& msg);
+
+ros::Subscriber<std_msgs::Byte> command_sub("AuCAR/command", &command_cb);
+
 ros::Subscriber<geometry_msgs::Twist> module0_sub("AuCAR/module0", &module0_cb);
 ros::Subscriber<geometry_msgs::Twist> module1_sub("AuCAR/module1", &module1_cb);
 ros::Subscriber<geometry_msgs::Twist> module2_sub("AuCAR/module2", &module2_cb);
 ros::Subscriber<geometry_msgs::Twist> module3_sub("AuCAR/module3", &module3_cb);
+
+ros::Subscriber<geometry_msgs::Twist> motor0_sub("AuCAR/motor_0", &motor0_cb);
+ros::Subscriber<geometry_msgs::Twist> motor1_sub("AuCAR/motor_1", &motor1_cb);
+ros::Subscriber<geometry_msgs::Twist> motor2_sub("AuCAR/motor_2", &motor2_cb);
+ros::Subscriber<geometry_msgs::Twist> motor3_sub("AuCAR/motor_3", &motor3_cb);
+
+ros::Subscriber<geometry_msgs::Twist> motor4_sub("AuCAR/motor_4", &motor4_cb);
+ros::Subscriber<geometry_msgs::Twist> motor5_sub("AuCAR/motor_5", &motor5_cb);
+ros::Subscriber<geometry_msgs::Twist> motor6_sub("AuCAR/motor_6", &motor6_cb);
+ros::Subscriber<geometry_msgs::Twist> motor7_sub("AuCAR/motor_7", &motor7_cb);
+
+
+
 
 
 
@@ -85,7 +119,7 @@ PeriphUsart __usart1(&huart1);
 PeriphUsart __usart2(&huart2);
 PeriphUsart __usart3(&huart3);
 
-#if LED_TYPE == C3_LED
+#if LED_TYPE == C3_LED_ALT
 PeriphGPIO __led1(GPIOA, GPIO_PIN_4, 1000);
 PeriphGPIO __led2(GPIOA, GPIO_PIN_5, 500);
 PeriphGPIO __led3(GPIOA, GPIO_PIN_6, 1000);
@@ -120,11 +154,23 @@ void init(void) {
 	nh.initNode();
 	nh.advertise(pub_chat);
 	nh.advertise(pub_header);
+	nh.advertise(pub_debub);
 
 	nh.subscribe(module0_sub);
 	nh.subscribe(module1_sub);
 	nh.subscribe(module2_sub);
 	nh.subscribe(module3_sub);
+
+	nh.subscribe(motor0_sub);
+	nh.subscribe(motor1_sub);
+	nh.subscribe(motor2_sub);
+	nh.subscribe(motor3_sub);
+
+	nh.subscribe(motor4_sub);
+	nh.subscribe(motor5_sub);
+	nh.subscribe(motor6_sub);
+	nh.subscribe(motor7_sub);
+
 
 	_DEBUG("ROS init OK.\r\n");
 
@@ -494,4 +540,89 @@ void module3_cb(const geometry_msgs::Twist& msg){
 		checksum += sendData[i];
 	sendData[17] = checksum;
 	__usart3.write(sendData, sizeof(sendData));
+}
+
+
+/* mode selection callback */
+void command_cb(const std_msgs::Byte& msg)
+{
+
+}
+
+/* c1 control callback */
+void motor0_cb(const geometry_msgs::Twist& msg)
+{
+#ifdef DEBUG
+	char dbgmsg[] = "motor0_cb";
+	str_dbgmsg.data = dbgmsg;
+	pub_debub.publish(&str_dbgmsg);
+#endif
+
+
+
+}
+void motor1_cb(const geometry_msgs::Twist& msg)
+{
+#ifdef DEBUG
+	char dbgmsg[] = "motor1_cb";
+	str_dbgmsg.data = dbgmsg;
+	pub_debub.publish(&str_dbgmsg);
+#endif
+
+}
+void motor2_cb(const geometry_msgs::Twist& msg)
+{
+#ifdef DEBUG
+	char dbgmsg[] = "motor2_cb";
+	str_dbgmsg.data = dbgmsg;
+	pub_debub.publish(&str_dbgmsg);
+#endif
+
+}
+void motor3_cb(const geometry_msgs::Twist& msg)
+{
+#ifdef DEBUG
+	char dbgmsg[] = "motor3_cb";
+	str_dbgmsg.data = dbgmsg;
+	pub_debub.publish(&str_dbgmsg);
+#endif
+
+}
+
+/* c2 control callback */
+void motor4_cb(const geometry_msgs::Twist& msg)
+{
+#ifdef DEBUG
+	char dbgmsg[] = "motor4_cb";
+	str_dbgmsg.data = dbgmsg;
+	pub_debub.publish(&str_dbgmsg);
+#endif
+
+}
+void motor5_cb(const geometry_msgs::Twist& msg)
+{
+#ifdef DEBUG
+	char dbgmsg[] = "motor5_cb";
+	str_dbgmsg.data = dbgmsg;
+	pub_debub.publish(&str_dbgmsg);
+#endif
+
+}
+void motor6_cb(const geometry_msgs::Twist& msg)
+{
+#ifdef DEBUG
+	char dbgmsg[] = "motor6_cb";
+	str_dbgmsg.data = dbgmsg;
+	pub_debub.publish(&str_dbgmsg);
+#endif
+
+}
+void motor7_cb(const geometry_msgs::Twist& msg)
+{
+#ifdef DEBUG
+	char dbgmsg[] = "motor7_cb";
+	str_dbgmsg.data = dbgmsg;
+	pub_debub.publish(&str_dbgmsg);
+#endif
+
 }
