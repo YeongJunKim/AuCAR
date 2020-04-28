@@ -8,6 +8,7 @@
 #include <periphGpio.h>
 #include <periphusart.h>
 #include <periphMotor.h>
+#include <periphusb.h>
 #include "vector"
 #include "main.h"
 #include "conf.h"
@@ -118,6 +119,8 @@ PeriphGPIO __id3(id_3_GPIO_Port, id_3_Pin, 0);
 PeriphUsart __usart1(&huart1);
 PeriphUsart __usart2(&huart2);
 PeriphUsart __usart3(&huart3);
+
+PeriphUSBCOM __usbcom();
 
 #if LED_TYPE == C3_LED_ALT
 PeriphGPIO __led1(GPIOA, GPIO_PIN_4, 1000);
