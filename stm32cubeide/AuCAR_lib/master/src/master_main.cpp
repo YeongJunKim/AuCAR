@@ -196,6 +196,9 @@ void init(void) {
 	_DEBUG("All init OK.\r\n");
 }
 
+uint32_t ntic=0;
+uint32_t ptic=0;
+
 uint32_t nowtick = 0;
 uint32_t pasttick = 0;
 
@@ -214,6 +217,21 @@ void run(void) {
 
 	int cnt = 0;
 	int read = 0;
+
+
+
+
+	// usb test
+	uint8_t mystring[] = "Hello?\n";
+	ntic = HAL_GetTick();
+
+	if(ntic - ptic > 100)
+	{
+		  CDC_Transmit_FS(mystring, strlen((const char*)mystring));
+		  ptic = ntic;
+	}
+
+
 
 	while(1)
 	{

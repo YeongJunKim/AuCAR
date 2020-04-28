@@ -29,10 +29,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "usbd_cdc_if.h"
 #include "master_main.h"
-#include "string.h"
-
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,8 +50,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-#define APP_RX_DATA_SIZE  128
-#define APP_TX_DATA_SIZE  128
 extern uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
 extern uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 /* USER CODE END PV */
@@ -120,8 +115,7 @@ int main(void)
 
   init();
 
-  uint32_t ntic=0;
-  uint32_t ptic=0;
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -133,14 +127,7 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  run();
 
-	  uint8_t mystring[] = "Hello?\n";
-	  ntic = HAL_GetTick();
 
-	  if(ntic - ptic > 100)
-	  {
-		  CDC_Transmit_FS(mystring, strlen((const char*)mystring));
-		  ptic = ntic;
-	  }
   }
   /* USER CODE END 3 */
 }
