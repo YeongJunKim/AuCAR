@@ -26,6 +26,8 @@ void timer_1s(void);
 void timer_10ms(void);
 void timer_15us(void);
 
+void target_angle_filter(void);
+void reset_encoder(uint8_t ch);
 void uart_tx_callback(UART_HandleTypeDef *huart);
 void uart_rx_callback(UART_HandleTypeDef *huart);
 
