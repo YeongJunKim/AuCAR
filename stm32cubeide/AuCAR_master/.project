@@ -2590,6 +2590,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/periph/periphusart.h</locationURI>
 		</link>
 		<link>
+			<name>AuCAR_lib/lib/periph/periphusb.h</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/periph/periphusb.h</locationURI>
+		</link>
+		<link>
 			<name>AuCAR_lib/lib/src/queue.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/src/queue.c</locationURI>

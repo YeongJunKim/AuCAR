@@ -29,7 +29,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "usbd_cdc_if.h"
 #include "master_main.h"
 /* USER CODE END Includes */
 
@@ -51,8 +50,6 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-#define APP_RX_DATA_SIZE 64
-#define APP_TX_DATA_SIZE 64
 extern uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
 extern uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 /* USER CODE END PV */
@@ -118,6 +115,7 @@ int main(void)
 
   init();
 
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -128,6 +126,8 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  run();
+
+
   }
   /* USER CODE END 3 */
 }

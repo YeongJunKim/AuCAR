@@ -80,12 +80,17 @@ PeriphGPIO __led4(GPIOB, GPIO_PIN_1, 500);
 
 /* motor control */
 LPID motor[4] ={0,};
+LPID angle[4] ={0,};
 uint16_t g_getEncoder[4] = {0,};
 uint16_t g_pastEncoder[4] = {0,};
 long g_deltaEncoder[4] = {0,};
 long g_targetEncoder[4] = {0,};
+long g_targetEncoderSave[4] = {0,};
+long g_nowAngle[4] = {0,};
 long g_targetAngle[4] = {0,};
 long g_deltaEncoderCnt[4] = {0,};
+
+long g_targetAngleLimit[4] = {180,180,180,180};
 /* motor control end */
 
 int __printf__io__putchar(int ch)
@@ -110,7 +115,8 @@ void init(void) {
 
 	for(int i = 0 ; i < 4; i++)
 		PID_Control_Long_Initialize(&motor[i]);
-
+	for(int i = 0; i < 4; i ++)
+		PID_Control_Long_Initialize_angle(&angle[i]);
 	_DEBUG("PID init OK.\r\n");
 	_DEBUG("All init OK.\r\n");
 	_DEBUG("Slave init end.\r\n");
@@ -122,11 +128,25 @@ void init(void) {
 uint32_t nowtick = 0;
 uint32_t pasttick = 0;
 
+uint8_t initialization = 0;
+
 void run(void) {
 	led_run();
 
 	int cnt = 0;
 	int read = 0;
+
+	if(initialization == 0)
+	{
+		while(1)
+		{
+			//TODO add limit switch
+			//TODO until tact limit switch turn CCW (target -10)
+			//if limit switch is tackted, stop and reset deltacount = 0, abs = 0
+			initialization = 1;
+			break;
+		}
+	}
 
 	while(1)
 	{
@@ -236,8 +256,10 @@ void task_run(control_type type, stateMachineTask_ST task)
 			__led1.setPeriod(50);
 			__led2.setPeriod(50);
 			g_targetEncoder[0] = (long)x;
-			g_targetEncoder[1] = (long)z;
+			//g_targetEncoder[1] = (long)z;
+			g_targetAngle[1] = (long)z;
 			_DEBUG("targetEncoder[0] : %d \r\ntargetEncoder[1] : %d\r\n",x,z);
+			target_angle_filter();
 		}
 		else if((task.cmd1 & 0x00FF) == 0x0020)
 		{
@@ -245,14 +267,38 @@ void task_run(control_type type, stateMachineTask_ST task)
 			__led3.setPeriod(50);
 			__led4.setPeriod(50);
 			g_targetEncoder[2] = (long)x;
-			g_targetEncoder[3] = (long)z;
+			//g_targetEncoder[3] = (long)z;
+			g_targetAngle[3] = (long)z;
 			_DEBUG("targetEncoder[2] : %d \r\ntargetEncoder[3] : %d\r\n",x,z);
+			target_angle_filter();
 		}
 
 	}
 }
 
-
+void target_angle_filter(void)
+{
+	if(g_targetAngle[1] < 0 || g_targetAngle[1] > 360)
+	{
+		g_targetAngle[1] = 0;
+	}
+	if(g_targetAngle[1] > 180 && g_targetAngle[1] <= 360)
+	{
+		g_targetAngle[1] = g_targetAngle[1] - 180;
+		g_targetEncoder[0] = -g_targetEncoder[0];
+	}
+	if(g_targetAngle[3] < 0 || g_targetAngle[3] > 360)
+	{
+		g_targetAngle[3] = 0;
+	}
+	if(g_targetAngle[3] > 180 && g_targetAngle[3] <= 360)
+	{
+		g_targetAngle[3] = g_targetAngle[3] - 180;
+		g_targetEncoder[2] = -g_targetEncoder[2];
+	}
+	g_targetEncoderSave[0] = g_targetEncoder[0];
+	g_targetEncoderSave[2] = g_targetEncoder[2];
+}
 
 /*
  *
@@ -282,7 +328,6 @@ __weak void timer_1s(void)
 __weak void timer_15us(void)
 {
 	abs_encoder_step_calculator();
-
 }
 __weak void timer_10ms(void)
 {
@@ -293,21 +338,54 @@ __weak void timer_10ms(void)
 	//30000 > - (65535 - getencoder) = delta;
 	//PID
 	//
+	// 1820 * 3 = 1바퀴
+	// 1404 * 4 = 1바퀴
+	g_nowAngle[1] = (long)((float)g_deltaEncoderCnt[1] / (1820.0 * 3.0) * 360.0);
+	g_nowAngle[3] = (long)((float)g_deltaEncoderCnt[3] / (1820.0 * 3.0) * 360.0);
 
+
+
+	if(abs(g_targetAngle[1] - g_nowAngle[1]) > 5)
+	{
+		motor[0].errorSum = 0;
+		g_targetEncoder[0] = 0;
+	}
+	else
+	{
+		g_targetEncoder[0] = g_targetEncoderSave[0];
+	}
+	if(abs(g_targetAngle[3] - g_nowAngle[3]) > 5)
+	{
+		motor[2].errorSum = 0;
+		g_targetEncoder[2] = 0;
+	}
+	else
+	{
+		g_targetEncoder[2] = g_targetEncoderSave[2];
+	}
 
 	g_getEncoder[0] = TIM5->CNT;
 	g_getEncoder[1] = TIM8->CNT;
 	g_getEncoder[2] = TIM3->CNT;
 	g_getEncoder[3] = TIM4->CNT;
 
+
+	PID_Control_Long(&angle[1], g_targetAngle[1], g_nowAngle[1]);
+	PID_Control_Long(&angle[3], g_targetAngle[3], g_nowAngle[3]);
+
+	g_targetEncoder[1] = -angle[1].nowOutput;
+	g_targetEncoder[3] = -angle[3].nowOutput;
+
+
 	for (int i = 0 ; i < 4 ; i++)
 	{
 		if(g_getEncoder[i] > 30000)
-			g_deltaEncoder[i] = -(65535 - g_getEncoder[i]);
+			g_deltaEncoder[i] = -(65536 - g_getEncoder[i]);
 		else
 			g_deltaEncoder[i] = g_getEncoder[i];
 		g_deltaEncoderCnt[i] += g_deltaEncoder[i];
 	}
+
 
 
 	TIM5->CNT = 0;
@@ -334,17 +412,17 @@ __weak void timer_10ms(void)
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_RESET);
 		TIM1->CCR1 = (uint16_t)(motor[0].nowOutput);
 	}
-//	if(motor[1].nowOutput < 0)
-//	{
-//
-//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_SET);
-//		TIM1->CCR2 = (uint16_t)(-motor[1].nowOutput);
-//	}
-//	else
-//	{
-//		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_RESET);
-//		TIM1->CCR2 = (uint16_t)(motor[1].nowOutput);
-//	}
+	if(motor[1].nowOutput < 0)
+	{
+
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_SET);
+		TIM1->CCR2 = (uint16_t)(-motor[1].nowOutput);
+	}
+	else
+	{
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_RESET);
+		TIM1->CCR2 = (uint16_t)(motor[1].nowOutput);
+	}
 	if(motor[2].nowOutput < 0)
 	{
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_SET);
@@ -355,16 +433,22 @@ __weak void timer_10ms(void)
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_8, GPIO_PIN_RESET);
 		TIM1->CCR3 = (uint16_t)(motor[2].nowOutput);
 	}
-//	if(motor[3].nowOutput < 0)
-//	{
-//		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);
-//		TIM1->CCR4 = (uint16_t)(-motor[3].nowOutput);
-//	}
-//	else
-//	{
-//		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);
-//		TIM1->CCR4 = (uint16_t)(motor[3].nowOutput);
-//	}
+	if(motor[3].nowOutput < 0)
+	{
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_SET);
+		TIM1->CCR4 = (uint16_t)(-motor[3].nowOutput);
+	}
+	else
+	{
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_9, GPIO_PIN_RESET);
+		TIM1->CCR4 = (uint16_t)(motor[3].nowOutput);
+	}
+}
+
+void reset_encoder(uint8_t ch)
+{
+	g_deltaEncoder[ch] = 0;
+	g_deltaEncoderCnt[ch] = 0;
 }
 
 void uart_tx_callback(UART_HandleTypeDef *huart)

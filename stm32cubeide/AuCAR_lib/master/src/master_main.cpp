@@ -8,6 +8,7 @@
 #include <periphGpio.h>
 #include <periphusart.h>
 #include <periphMotor.h>
+#include <periphusb.h>
 #include "vector"
 #include "main.h"
 #include "conf.h"
@@ -119,6 +120,8 @@ PeriphUsart __usart1(&huart1);
 PeriphUsart __usart2(&huart2);
 PeriphUsart __usart3(&huart3);
 
+PeriphUSBCOM __usbcom();
+
 #if LED_TYPE == C3_LED_ALT
 PeriphGPIO __led1(GPIOA, GPIO_PIN_4, 1000);
 PeriphGPIO __led2(GPIOA, GPIO_PIN_5, 500);
@@ -196,6 +199,9 @@ void init(void) {
 	_DEBUG("All init OK.\r\n");
 }
 
+uint32_t ntic=0;
+uint32_t ptic=0;
+
 uint32_t nowtick = 0;
 uint32_t pasttick = 0;
 
@@ -214,6 +220,21 @@ void run(void) {
 
 	int cnt = 0;
 	int read = 0;
+
+
+
+
+	// usb test
+	uint8_t mystring[] = "Hello?\n";
+	ntic = HAL_GetTick();
+
+	if(ntic - ptic > 100)
+	{
+		  CDC_Transmit_FS(mystring, strlen((const char*)mystring));
+		  ptic = ntic;
+	}
+
+
 
 	while(1)
 	{

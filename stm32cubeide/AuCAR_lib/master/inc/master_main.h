@@ -11,8 +11,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#define APP_RX_DATA_SIZE  128
+#define APP_TX_DATA_SIZE  128
 
 #include "interrupt_handler.h"
+#include "usbd_cdc_if.h"
+#include "string.h"
+
 
 typedef struct _debug{
 	int data[100];

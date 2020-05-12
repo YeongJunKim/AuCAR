@@ -38,7 +38,19 @@ void PID_Control_Long_Initialize(LPID* dst)
 	dst->underOfPoint = 1000;
 	dst->outputLimit = 500;
 }
-
+void PID_Control_Long_Initialize_angle(LPID* dst)
+{
+	dst->errorSum = 0;
+	dst->errorSumLimit = 100;
+	dst->kP = 1000;
+	dst->kI = 9;
+	dst->kD = 20;
+	dst->pastError = 0;
+	dst->pastOutput = 0;
+	dst->pastValue = 0;
+	dst->underOfPoint = 1000;
+	dst->outputLimit = 50;
+}
 void PID_Control_Long(LPID* dst, long target, long input)
 {
 	dst->nowValue = input;
