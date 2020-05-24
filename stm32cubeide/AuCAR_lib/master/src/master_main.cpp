@@ -390,8 +390,24 @@ void run(void) {
 	 * enqueue data
 	 * frame -> queue -> usart
 	 * */
-
-
+	stateMachineTask_ST get = { 0, };
+	g_stateMachines.run();
+	BOOL state = g_stateMachines.get_task(0, &get);
+	if (state == true) {
+#ifdef DEBUG
+	char dbgmsg[] = "get angle from slave";
+	str_dbgmsg.data = dbgmsg;
+	pub_debub.publish(&str_dbgmsg);
+#endif
+	int getAngle1 = get.data[0];
+	getAngle1 |= get.data[1] << 8;
+	getAngle1 |= get.data[2] << 16;
+	getAngle1 |= get.data[3] << 24;
+	int getAngle3 = get.data[4];
+	getAngle3 |= get.data[5];
+	getAngle3 |= get.data[6];
+	getAngle3 |= get.data[7];
+	}
 
 	/*
 	 * local functions
