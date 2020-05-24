@@ -35,6 +35,11 @@ typedef struct _counters {
 	uint32_t usart5ErrorCounter;
 	uint32_t usart6ErrorCounter;
 
+	uint32_t can1TxCounter;
+	uint32_t can1RxCounter;
+	uint32_t can1RxFullCounter;
+	uint32_t can1ErrorCounter;
+
 	uint32_t stateMachineCpltCounter[3];
 } COUNTERS;
 
