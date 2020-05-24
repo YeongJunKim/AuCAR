@@ -185,6 +185,37 @@ void run(void) {
 //
 //	}
 
+	nowtick = HAL_GetTick();
+	if(nowtick - pasttick > 100)
+	{
+		uint16_t cmd1 = 0x3000;
+		uint16_t cmd2 = 0x0000;
+		uint16_t len = 8;
+
+		uint8_t arr[2+2+2+2+8+1] = {0,};
+		arr[0] = 0xFF;
+		arr[1] = 0xFF;
+		arr[2] = cmd1;
+		arr[3] = cmd1 >> 8;
+		arr[4] = cmd2;
+		arr[5] = cmd2 >> 8;
+		arr[6] = len;
+		arr[7] = len >> 8;
+//		g_nowAngle[1] = 10;
+//		g_nowAngle[3] = 250;
+		arr[8] = ((int)g_nowAngle[1]);
+		arr[9] = ((int)g_nowAngle[1]) >> 8;
+		arr[10] = ((int)g_nowAngle[1]) >> 16;
+		arr[11] = ((int)g_nowAngle[1]) >> 24;
+		arr[12] = ((int)g_nowAngle[3]);
+		arr[13] = ((int)g_nowAngle[3]) >> 8;
+		arr[14] = ((int)g_nowAngle[3]) >> 16;
+		arr[15] = ((int)g_nowAngle[3]) >> 24;
+		for(int i =0; i < 8 ; i++)
+			arr[16] += arr[8+i];
+		__usart2.write(arr, 17);
+		pasttick = nowtick;
+	}
 
 	/* test sender end */
 
