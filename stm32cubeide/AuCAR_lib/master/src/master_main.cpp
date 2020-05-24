@@ -9,8 +9,12 @@
 #include <periphusart.h>
 #include <periphMotor.h>
 #include <periphusb.h>
+#include <periphCAN.h>
+#include <MW-AHRSv1.h>
+
 #include "vector"
 #include "main.h"
+#include "can.h"
 #include "conf.h"
 
 #include "AuCAR_conf.h"
@@ -27,8 +31,9 @@
 #include "std_msgs/ByteMultiArray.h"
 #include "std_msgs/Header.h"
 #include "std_msgs/String.h"
+#include "sensor_msgs/Imu.h"
 #include "geometry_msgs/Twist.h"
-
+#include "geometry_msgs/Vector3.h"
 #define DEBUG
 
 
@@ -50,14 +55,15 @@ ros::NodeHandle nh;
 std_msgs::String str_msg;
 std_msgs::String str_dbgmsg;
 std_msgs::Header str_header;
+geometry_msgs::Vector3 topic_euler;
 
 ros::Publisher pub_chat("AuCAR/chatter", &str_msg);
 ros::Publisher pub_debub("AuCAR/debug", &str_dbgmsg);
+ros::Publisher pub_header("AuCAR/header", &str_header);
+ros::Publisher pub_euler("AuCAR/euler", &topic_euler);
+
 char hello[] = "Hello world!";
 char dbgmsg[] = "debuging";
-
-ros::Publisher pub_header("AuCAR/header", &str_header);
-
 
 /* mode selection callback */
 void command_cb(const std_msgs::Byte& msg);
@@ -79,6 +85,7 @@ void motor4_cb(const geometry_msgs::Twist& msg);
 void motor5_cb(const geometry_msgs::Twist& msg);
 void motor6_cb(const geometry_msgs::Twist& msg);
 void motor7_cb(const geometry_msgs::Twist& msg);
+void yaw_cb(const geometry_msgs::Vector3& msg);
 
 ros::Subscriber<std_msgs::Byte> command_sub("AuCAR/command", &command_cb);
 
@@ -97,8 +104,15 @@ ros::Subscriber<geometry_msgs::Twist> motor5_sub("AuCAR/motor_5", &motor5_cb);
 ros::Subscriber<geometry_msgs::Twist> motor6_sub("AuCAR/motor_6", &motor6_cb);
 ros::Subscriber<geometry_msgs::Twist> motor7_sub("AuCAR/motor_7", &motor7_cb);
 
+ros::Subscriber<geometry_msgs::Vector3> yaw_sub("AuCAR/yaw", &yaw_cb);
 
 
+extern CAN_HandleTypeDef hcan1;
+CAN_TxHeaderTypeDef can_tx_hedder = { 0, };
+CAN_RxHeaderTypeDef can_rx_hedder = { 0, };
+uint8_t can_tx_data[8] = { 0, };
+uint8_t can_rx_data[8] = { 0, };
+MW_AHRS ahrs_obj;
 
 
 
@@ -119,6 +133,8 @@ PeriphGPIO __id3(id_3_GPIO_Port, id_3_Pin, 0);
 PeriphUsart __usart1(&huart1);
 PeriphUsart __usart2(&huart2);
 PeriphUsart __usart3(&huart3);
+
+PeriphCAN __can1(&hcan1);
 
 PeriphUSBCOM __usbcom();
 
@@ -158,6 +174,7 @@ void init(void) {
 	nh.advertise(pub_chat);
 	nh.advertise(pub_header);
 	nh.advertise(pub_debub);
+	nh.advertise(pub_euler);
 
 	nh.subscribe(module0_sub);
 	nh.subscribe(module1_sub);
@@ -174,14 +191,16 @@ void init(void) {
 	nh.subscribe(motor6_sub);
 	nh.subscribe(motor7_sub);
 
+	nh.subscribe(yaw_sub);
 
 	_DEBUG("ROS init OK.\r\n");
 
-	/* peripheral init */
+	/* Timer initilization */
 	HAL_TIM_Base_Start_IT(&htim6);
 	HAL_TIM_Base_Start_IT(&htim7);
 	_DEBUG("Timer init OK.\r\n");
 
+	/* IO initilization */
 	__c1boot.set();
 	__c2boot.set();
 
@@ -192,11 +211,40 @@ void init(void) {
 	__c2power.reset();
 	_DEBUG("Default IO init OK.\r\n");
 
+	/* USART initilization */
 	__usart1.init();
 	//__usart2.init();
 	__usart3.init();
 	_DEBUG("Usart init OK.\r\n");
 	_DEBUG("All init OK.\r\n");
+
+	/* CAN initilization */
+	CAN_FilterTypeDef canFilter;
+	canFilter.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+	canFilter.FilterMode = CAN_FILTERMODE_IDMASK;
+	canFilter.FilterScale = CAN_FILTERSCALE_32BIT;
+	canFilter.FilterIdHigh = 0x0000 << 5;
+	canFilter.FilterIdLow = 0x0000;
+	canFilter.FilterMaskIdHigh = 0x0000 << 5;
+	canFilter.FilterMaskIdLow = 0x0000;
+	canFilter.SlaveStartFilterBank = 0;
+	canFilter.FilterBank = 0;
+	canFilter.FilterActivation = CAN_FILTER_ENABLE;
+
+
+	mw_ahrs_set_period(&ahrs_obj, 10);
+	mw_ahrs_set_data_type(&ahrs_obj, 1, 1, 1, 1);
+	can_tx_hedder.StdId = 0x01;
+	can_tx_hedder.ExtId = 0x01;
+	can_tx_hedder.RTR = CAN_RTR_DATA;
+	can_tx_hedder.IDE = CAN_ID_STD;
+	can_tx_hedder.DLC = 8;
+	for(int i=0; i<8; i++)
+		can_tx_data[i] = ahrs_obj.can_write_data[i];
+	__can1.can_filter_init(canFilter);
+	__can1.can_notification_init(CAN_IT_TX_MAILBOX_EMPTY | CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_RX_FIFO0_FULL);
+	__can1.can_start();
+	__can1.can_transmit_data(&can_tx_hedder, can_tx_data);
 }
 
 uint32_t ntic=0;
@@ -204,6 +252,9 @@ uint32_t ptic=0;
 
 uint32_t nowtick = 0;
 uint32_t pasttick = 0;
+
+uint32_t cannowtick = 0;
+uint32_t canpasttick = 0;
 
 uint32_t rosnowtick = 0;
 uint32_t rospasttick = 0;
@@ -289,7 +340,34 @@ void run(void) {
 		pasttick = nowtick;
 	}
 
+	cannowtick = HAL_GetTick();
+	if(cannowtick - canpasttick > 50)
+	{
+		uint8_t debugyaw[100] = {0,};
+		int yaw = (int)(ahrs_obj.e_yaw * 100.0);
+		uint16_t cmd1 = 0x0030;
+		uint16_t cmd2 = 0x0000;
+		uint16_t len = 5;
+		uint8_t sendData[14];
+		sendData[0] = 0xFF;
+		sendData[1] = 0xFF;
+		sendData[2] = cmd1;
+		sendData[3] = cmd1 >> 8;
+		sendData[4] = cmd2;
+		sendData[5] = cmd2 >> 8;
+		sendData[6] = len;
+		sendData[7] = len >> 8;
+		sendData[8] = yaw;
+		sendData[9] = yaw >> 8;
+		sendData[10] = yaw >> 16;
+		sendData[11] = yaw >> 24;
+		sendData[12] = 0;
+		for(int i = 0; i < len; i++)
+			sendData[13]+= sendData[8+i];
 
+//		__usart1.write(sendData, (2+2+2+2+len+1));
+		canpasttick = cannowtick;
+	}
 
 	/* test sender end */
 	/*
@@ -328,8 +406,12 @@ void run(void) {
 	{
 		str_msg.data = hello;
 		str_header.seq++;
+		topic_euler.x = ahrs_obj.e_roll;
+		topic_euler.y = ahrs_obj.e_pitch;
+		topic_euler.z = ahrs_obj.e_yaw;
 		pub_header.publish(&str_header);
 		pub_chat.publish(&str_msg);
+		pub_euler.publish(&topic_euler);
 		rospasttick = rosnowtick;
 	}
 	nh.spinOnce();
@@ -429,6 +511,11 @@ void uart_rx_callback(UART_HandleTypeDef *huart)
 
 //to C1 chip
 void module0_cb(const geometry_msgs::Twist& msg){
+#ifdef DEBUG
+	char dbgmsg[] = "module0_cb";
+	str_dbgmsg.data = dbgmsg;
+	pub_debub.publish(&str_dbgmsg);
+#endif
 	__led1.setPeriod(50);
 	int x = (int)(msg.linear.x * 100);
 	int z = (int)(msg.angular.z * 100);
@@ -462,6 +549,11 @@ void module0_cb(const geometry_msgs::Twist& msg){
 	__usart1.write(sendData, sizeof(sendData));
 }
 void module1_cb(const geometry_msgs::Twist& msg){
+#ifdef DEBUG
+	char dbgmsg[] = "module1_cb";
+	str_dbgmsg.data = dbgmsg;
+	pub_debub.publish(&str_dbgmsg);
+#endif
 	__led2.setPeriod(50);
 	int x = (int)(msg.linear.x * 100);
 	int z = (int)(msg.angular.z * 100);
@@ -497,6 +589,11 @@ void module1_cb(const geometry_msgs::Twist& msg){
 
 //to c2 chip
 void module2_cb(const geometry_msgs::Twist& msg){
+#ifdef DEBUG
+	char dbgmsg[] = "module2_cb";
+	str_dbgmsg.data = dbgmsg;
+	pub_debub.publish(&str_dbgmsg);
+#endif
 	__led3.setPeriod(50);
 	int x = (int)(msg.linear.x * 100);
 	int z = (int)(msg.angular.z * 100);
@@ -530,6 +627,11 @@ void module2_cb(const geometry_msgs::Twist& msg){
 	__usart3.write(sendData, sizeof(sendData));
 }
 void module3_cb(const geometry_msgs::Twist& msg){
+#ifdef DEBUG
+	char dbgmsg[] = "module3_cb";
+	str_dbgmsg.data = dbgmsg;
+	pub_debub.publish(&str_dbgmsg);
+#endif
 	__led4.setPeriod(50);
 	int x = (int)(msg.linear.x * 100);
 	int z = (int)(msg.angular.z * 100);
@@ -646,4 +748,49 @@ void motor7_cb(const geometry_msgs::Twist& msg)
 	pub_debub.publish(&str_dbgmsg);
 #endif
 
+}
+
+void yaw_cb(const geometry_msgs::Vector3& msg)
+{
+#ifdef DEBUG
+	char dbgmsg[] = "yaw_cb";
+	str_dbgmsg.data = dbgmsg;
+	pub_debub.publish(&str_dbgmsg);
+#endif
+}
+
+void can_tx_callback(CAN_HandleTypeDef *huart)
+{
+
+}
+void can_rx_callback(CAN_HandleTypeDef *huart)
+{
+
+	HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &can_rx_hedder, can_rx_data);
+	for (int i = 0; i < 8; i++) {
+		ahrs_obj.can_read_data[i] = can_rx_data[i];
+	}
+	mw_ahrs_input_data(&ahrs_obj);
+}
+int make_packet(uint16_t cmd1, uint16_t cmd2, uint16_t len, uint8_t *data, uint8_t *dst)
+{
+	int length = 2 + 2 + 2 + len + 1;
+	uint8_t checksum = 0;
+	dst = (uint8_t *)malloc(sizeof(uint8_t) * length);
+
+	dst[0] = 0xFF;
+	dst[1] = 0xFF;
+	dst[2] = cmd1;
+	dst[3] = cmd1 >> 8;
+	dst[4] = cmd2;
+	dst[5] = cmd2 >> 8;
+	dst[6] = length;
+	dst[7] = length >> 8;
+	for(int i = 0; i < len; i++)
+	{
+		dst[8+i] = data[i];
+		checksum+= data[i];
+	}
+	dst[8+len] = checksum;
+	return length;
 }

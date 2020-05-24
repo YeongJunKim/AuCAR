@@ -39,8 +39,13 @@ void circuit_logic_test(void);
 void timer_1s(void);
 void timer_10ms(void);
 
+void mw_ahrsv1_init(void);
+void mw_trans_init(void);
 void uart_tx_callback(UART_HandleTypeDef *huart);
 void uart_rx_callback(UART_HandleTypeDef *huart);
+void can_tx_callback(CAN_HandleTypeDef *huart);
+void can_rx_callback(CAN_HandleTypeDef *huart);
+int make_packet(uint16_t cmd1, uint16_t cmd2, uint16_t len, uint8_t *data, uint8_t *dst);
 
 #ifdef __cplusplus
 }
