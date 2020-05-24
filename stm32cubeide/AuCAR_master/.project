@@ -2555,6 +2555,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/ROS/visualization_msgs/MenuEntry.h</locationURI>
 		</link>
 		<link>
+			<name>AuCAR_lib/lib/inc/MW-AHRSv1.h</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/inc/MW-AHRSv1.h</locationURI>
+		</link>
+		<link>
 			<name>AuCAR_lib/lib/inc/conf.h</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/inc/conf.h</locationURI>
@@ -2593,6 +2598,11 @@
 			<name>AuCAR_lib/lib/periph/periphusb.h</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/periph/periphusb.h</locationURI>
+		</link>
+		<link>
+			<name>AuCAR_lib/lib/src/MW-AHRSv1.c</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/AuCAR_lib/lib/src/MW-AHRSv1.c</locationURI>
 		</link>
 		<link>
 			<name>AuCAR_lib/lib/src/queue.c</name>
