@@ -399,8 +399,12 @@ void run(void) {
 #ifdef DEBUG
 		char dbgmsg[] = "get angle from slave C1";
 		char c_tick[10];
+		char c_addr[10];
 		itoa(nowtick, c_tick, 10);
+		itoa((int)get.data, c_addr, 16);
 		str_dbgmsg.data = strcat(c_tick, dbgmsg);
+		pub_debub.publish(&str_dbgmsg);
+		str_dbgmsg.data = c_addr;
 		pub_debub.publish(&str_dbgmsg);
 #endif
 		int getAngle1 = get.data[0];
@@ -419,8 +423,12 @@ void run(void) {
 #ifdef DEBUG
 		char dbgmsg[] = "get angle from slave C2";
 		char c_tick[10];
+		char c_addr[10];
 		itoa(nowtick, c_tick, 10);
+		itoa((int)get.data, c_addr, 16);
 		str_dbgmsg.data = strcat(c_tick, dbgmsg);
+		pub_debub.publish(&str_dbgmsg);
+		str_dbgmsg.data = c_addr;
 		pub_debub.publish(&str_dbgmsg);
 #endif
 		int getAngle1 = get.data[0];
