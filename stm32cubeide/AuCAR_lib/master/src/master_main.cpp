@@ -16,6 +16,8 @@
 #include "main.h"
 #include "can.h"
 #include "conf.h"
+#include "string.h"
+#include <iostream>
 
 #include "AuCAR_conf.h"
 #include "master_main.h"
@@ -395,18 +397,41 @@ void run(void) {
 	BOOL state = g_stateMachines.get_task(0, &get);
 	if (state == true) {
 #ifdef DEBUG
-	char dbgmsg[] = "get angle from slave";
-	str_dbgmsg.data = dbgmsg;
-	pub_debub.publish(&str_dbgmsg);
+		char dbgmsg[] = "get angle from slave C1";
+		char c_tick[10];
+		itoa(nowtick, c_tick, 10);
+		str_dbgmsg.data = strcat(c_tick, dbgmsg);
+		pub_debub.publish(&str_dbgmsg);
 #endif
-	int getAngle1 = get.data[0];
-	getAngle1 |= get.data[1] << 8;
-	getAngle1 |= get.data[2] << 16;
-	getAngle1 |= get.data[3] << 24;
-	int getAngle3 = get.data[4];
-	getAngle3 |= get.data[5];
-	getAngle3 |= get.data[6];
-	getAngle3 |= get.data[7];
+		int getAngle1 = get.data[0];
+		getAngle1 |= get.data[1] << 8;
+		getAngle1 |= get.data[2] << 16;
+		getAngle1 |= get.data[3] << 24;
+		int getAngle3 = get.data[4];
+		getAngle3 |= get.data[5];
+		getAngle3 |= get.data[6];
+		getAngle3 |= get.data[7];
+		free(get.data);
+	}
+
+	state = g_stateMachines.get_task(1, &get);
+	if (state == true) {
+#ifdef DEBUG
+		char dbgmsg[] = "get angle from slave C2";
+		char c_tick[10];
+		itoa(nowtick, c_tick, 10);
+		str_dbgmsg.data = strcat(c_tick, dbgmsg);
+		pub_debub.publish(&str_dbgmsg);
+#endif
+		int getAngle1 = get.data[0];
+		getAngle1 |= get.data[1] << 8;
+		getAngle1 |= get.data[2] << 16;
+		getAngle1 |= get.data[3] << 24;
+		int getAngle3 = get.data[4];
+		getAngle3 |= get.data[5];
+		getAngle3 |= get.data[6];
+		getAngle3 |= get.data[7];
+		free(get.data);
 	}
 
 	/*
