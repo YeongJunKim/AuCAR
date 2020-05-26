@@ -22,6 +22,7 @@
 
 #include "AuCAR.h"
 #include "absoluteEncoder.h"
+#include "stdlib.h"
 
 #if LOCAL_DEVICE == C1
 /* PeriphGPIO(MODULE, PIN, Period) */
@@ -213,9 +214,33 @@ void run(void) {
 		arr[15] = ((int)g_nowAngle[3]) >> 24;
 		for(int i =0; i < 8 ; i++)
 			arr[16] += arr[8+i];
-		__usart2.write(arr, 17);
+//		__usart2.write(arr, 17);
+
+
+
+
+		uint8_t deb[20] = {0,};
+		stateMachineTask_ST send = {0,};
+		send.cmd1 = 0x3000;
+		send.cmd2 = 0x0000;
+		send.length = 8;
+		send.data = (uint8_t*)malloc(sizeof(uint8_t) * send.length);
+		send.checksum = 0;
+		for(int i = 0; i < send.length; i ++)
+		{
+			send.data[i] = i;
+			send.checksum += send.data[i];
+		}
+		uint8_t *psend;
+		psend = (uint8_t *)malloc(sizeof(uint8_t) * 100);
+
+		int size = g_stateMachines.send_task(0, send, psend);
+		__usart2.write(psend, size);
+		free(send.data);
+		free(psend);
 		pasttick = nowtick;
 	}
+
 
 	/* test sender end */
 
@@ -239,7 +264,10 @@ void run(void) {
 	if(state == true)
 	{
 		task_run(TYPE_MOTOR, get);
+
+		free(get.data);
 	}
+
 
 	/*
 	 * enqueue data
