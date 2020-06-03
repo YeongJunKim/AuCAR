@@ -29,14 +29,14 @@ void PID_Control_Long_Initialize(LPID* dst)
 {
 	dst->errorSum = 0;
 	dst->errorSumLimit = 500;
-	dst->kP = 18000;
+	dst->kP = 12000;
 	dst->kI = 700;
 	dst->kD = 0;
 	dst->pastError = 0;
 	dst->pastOutput = 0;
 	dst->pastValue = 0;
 	dst->underOfPoint = 1000;
-	dst->outputLimit = 500;
+	dst->outputLimit = 700;
 }
 void PID_Control_Long_Initialize2(LPID* dst)
 {
