@@ -36,6 +36,7 @@
 #include "sensor_msgs/Imu.h"
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/Vector3.h"
+
 #define DEBUG
 
 
@@ -59,6 +60,7 @@ std_msgs::String str_dbgmsg;
 std_msgs::Header str_header;
 geometry_msgs::Vector3 topic_euler;
 geometry_msgs::Vector3 topic_acceleration;
+sensor_msgs::Imu topic_imu;
 
 ros::Publisher pub_chat("AuCAR/chatter", &str_msg);
 /* debug message */
@@ -69,6 +71,8 @@ ros::Publisher pub_header("AuCAR/header", &str_header);
 ros::Publisher pub_euler("AuCAR/euler", &topic_euler);
 /* imu acc */
 ros::Publisher pub_accleration("AuCAR/acceleration", &topic_acceleration);
+/* imu message */
+ros::Publisher pub_imu("AuCAR/imu", &topic_imu);
 
 char hello[] = "Hello world!";
 char dbgmsg[] = "debuging";
@@ -162,8 +166,8 @@ PeriphGPIO __led4(GPIOB, GPIO_PIN_1, 500);
 StateMachine g_stateMachines;
 
 
-
 BUGCATCHER debug = {0,};
+
 
 int __printf__io__putchar(int ch)
 {
@@ -470,10 +474,20 @@ void run(void) {
 		topic_acceleration.y = ahrs_obj.a_y;
 		topic_acceleration.z = ahrs_obj.a_z;
 
+//		char imu_link[] = "imu_link";
+//		topic_imu.header.seq++;
+//		topic_imu.header.frame_id = imu_link;
+//		topic_imu.linear_acceleration.x = ahrs_obj.a_x;
+//		topic_imu.linear_acceleration.y = ahrs_obj.a_y;
+//		topic_imu.linear_acceleration.z = ahrs_obj.a_z;
+
+
 		pub_header.publish(&str_header);
 		pub_chat.publish(&str_msg);
 		pub_euler.publish(&topic_euler);
 		pub_accleration.publish(&topic_acceleration);
+
+//		pub_imu.publish(&topic_imu);
 		rospasttick = rosnowtick;
 	}
 	nh.spinOnce();

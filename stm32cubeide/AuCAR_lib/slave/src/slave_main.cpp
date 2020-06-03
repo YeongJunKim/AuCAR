@@ -114,8 +114,10 @@ void init(void) {
 	_DEBUG("Usart init OK.\r\n");
 
 
-	for(int i = 0 ; i < 4; i++)
-		PID_Control_Long_Initialize(&motor[i]);
+		PID_Control_Long_Initialize(&motor[0]);
+		PID_Control_Long_Initialize2(&motor[2]);
+		PID_Control_Long_Initialize(&motor[1]);
+		PID_Control_Long_Initialize2(&motor[3]);
 	for(int i = 0; i < 4; i ++)
 		PID_Control_Long_Initialize_angle(&angle[i]);
 	_DEBUG("PID init OK.\r\n");
@@ -337,24 +339,34 @@ void task_run(control_type type, stateMachineTask_ST task)
 
 void target_angle_filter(void)
 {
-	if(g_targetAngle[1] < 0 || g_targetAngle[1] > 360)
-	{
-		g_targetAngle[1] = 0;
-	}
-	if(g_targetAngle[1] > 180 && g_targetAngle[1] <= 360)
-	{
-		g_targetAngle[1] = g_targetAngle[1] - 180;
-		g_targetEncoder[0] = -g_targetEncoder[0];
-	}
-	if(g_targetAngle[3] < 0 || g_targetAngle[3] > 360)
-	{
-		g_targetAngle[3] = 0;
-	}
-	if(g_targetAngle[3] > 180 && g_targetAngle[3] <= 360)
-	{
-		g_targetAngle[3] = g_targetAngle[3] - 180;
-		g_targetEncoder[2] = -g_targetEncoder[2];
-	}
+//	if(g_targetAngle[1] < 0 || g_targetAngle[1] > 360)
+//	{
+//		g_targetAngle[1] = 0;
+//	}
+//	if(g_targetAngle[1] > 180 && g_targetAngle[1] <= 360)
+//	{
+//		g_targetAngle[1] = g_targetAngle[1] - 180;
+//		g_targetEncoder[0] = -g_targetEncoder[0];
+//	}
+//	if(g_targetAngle[3] < 0 || g_targetAngle[3] > 360)
+//	{
+//		g_targetAngle[3] = 0;
+//	}
+//	if(g_targetAngle[3] > 180 && g_targetAngle[3] <= 360)
+//	{
+//		g_targetAngle[3] = g_targetAngle[3] - 180;
+//		g_targetEncoder[2] = -g_targetEncoder[2];
+//	}
+//	g_targetEncoderSave[0] = g_targetEncoder[0];
+//	g_targetEncoderSave[2] = g_targetEncoder[2];
+	if(g_targetAngle[1] < -180)
+		g_targetAngle[1] = -180;
+	if(g_targetAngle[1] > 180)
+		g_targetAngle[1] = 180;
+	if(g_targetAngle[3] < -180)
+		g_targetAngle[3] = -180;
+	if(g_targetAngle[3] > 180)
+		g_targetAngle[3] = 180;
 	g_targetEncoderSave[0] = g_targetEncoder[0];
 	g_targetEncoderSave[2] = g_targetEncoder[2];
 }

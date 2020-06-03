@@ -68,6 +68,7 @@ void PID_Control_Long(LPID* dst, 	//!< ���� ��� PID �����
 /** Long �̵氪�� ����ϴ� PID ����ü �ʱ�ȭ �Լ� */
 void PID_Control_Long_Initialize(LPID* dst //!< ���� ��� PID ������ ����ü
 		);
+void PID_Control_Long_Initialize2(LPID* dst);
 void PID_Control_Long_Initialize_angle(LPID* dst);
 
 
