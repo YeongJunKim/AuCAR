@@ -58,11 +58,17 @@ std_msgs::String str_msg;
 std_msgs::String str_dbgmsg;
 std_msgs::Header str_header;
 geometry_msgs::Vector3 topic_euler;
+geometry_msgs::Vector3 topic_acceleration;
 
 ros::Publisher pub_chat("AuCAR/chatter", &str_msg);
+/* debug message */
 ros::Publisher pub_debub("AuCAR/debug", &str_dbgmsg);
+/* headder message */
 ros::Publisher pub_header("AuCAR/header", &str_header);
+/* imu euler angle */
 ros::Publisher pub_euler("AuCAR/euler", &topic_euler);
+/* imu acc */
+ros::Publisher pub_accleration("AuCAR/acceleration", &topic_acceleration);
 
 char hello[] = "Hello world!";
 char dbgmsg[] = "debuging";
@@ -177,6 +183,7 @@ void init(void) {
 	nh.advertise(pub_header);
 	nh.advertise(pub_debub);
 	nh.advertise(pub_euler);
+	nh.advertise(pub_accleration);
 
 	nh.subscribe(module0_sub);
 	nh.subscribe(module1_sub);
@@ -458,9 +465,15 @@ void run(void) {
 		topic_euler.x = ahrs_obj.e_roll;
 		topic_euler.y = ahrs_obj.e_pitch;
 		topic_euler.z = ahrs_obj.e_yaw;
+
+		topic_acceleration.x = ahrs_obj.a_x;
+		topic_acceleration.y = ahrs_obj.a_y;
+		topic_acceleration.z = ahrs_obj.a_z;
+
 		pub_header.publish(&str_header);
 		pub_chat.publish(&str_msg);
 		pub_euler.publish(&topic_euler);
+		pub_accleration.publish(&topic_acceleration);
 		rospasttick = rosnowtick;
 	}
 	nh.spinOnce();
