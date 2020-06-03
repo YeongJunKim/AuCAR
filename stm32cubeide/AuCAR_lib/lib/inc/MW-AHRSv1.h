@@ -92,6 +92,11 @@ typedef struct
 	float m_y;
 	float m_z;
 
+	// acc interal
+	float ai_x;
+	float ai_y;
+	float ai_z;
+
 
 	uint8_t a_raw_data[6];
 	uint8_t g_raw_data[6];

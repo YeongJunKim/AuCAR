@@ -18,6 +18,10 @@ void mw_ahrs_input_data(MW_AHRS *dst) {
 					/ 1000.0f;
 			dst->a_z = GET_S16_BYTE(dst->a_raw_data[4], dst->a_raw_data[5])
 					/ 1000.0f;
+
+			dst->ai_x += dst->a_x;
+			dst->ai_y += dst->a_y;
+			dst->ai_z += dst->a_z;
 			break;
 		case GYROSCOPE:
 			memcpy(dst->g_raw_data, &dst->can_read_data[2], 6);
