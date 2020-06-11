@@ -24,7 +24,7 @@
 **         �� ����� Long���� ����ϴ� PID������� �Լ��� ����ü�� ����ֽ��ϴ�. 
 */         
   
-
+// 조향 게인
 void PID_Control_Long_Initialize(LPID* dst)
 {
 	dst->errorSum = 0;
@@ -36,14 +36,15 @@ void PID_Control_Long_Initialize(LPID* dst)
 	dst->pastOutput = 0;
 	dst->pastValue = 0;
 	dst->underOfPoint = 1000;
-	dst->outputLimit = 700;
+	dst->outputLimit = 1000;
 }
+// 구동 게인
 void PID_Control_Long_Initialize2(LPID* dst)
 {
 	dst->errorSum = 0;
 	dst->errorSumLimit = 500;
-	dst->kP = 18000;
-	dst->kI = 700;
+	dst->kP = 12500;
+	dst->kI = 400;
 	dst->kD = 0;
 	dst->pastError = 0;
 	dst->pastOutput = 0;
@@ -55,14 +56,14 @@ void PID_Control_Long_Initialize_angle(LPID* dst)
 {
 	dst->errorSum = 0;
 	dst->errorSumLimit = 100;
-	dst->kP = 1000;
-	dst->kI = 9;
-	dst->kD = 20;
+	dst->kP = 5200;
+	dst->kI = 0;
+	dst->kD = 0;
 	dst->pastError = 0;
 	dst->pastOutput = 0;
 	dst->pastValue = 0;
 	dst->underOfPoint = 1000;
-	dst->outputLimit = 50;
+	dst->outputLimit = 100;
 }
 void PID_Control_Long(LPID* dst, long target, long input)
 {

@@ -416,7 +416,7 @@ __weak void timer_10ms(void)
 
 
 
-	if(abs(g_targetAngle[1] - g_nowAngle[1]) > 5)
+	if(abs(g_targetAngle[1] - g_nowAngle[1]) > 30)
 	{
 		motor[0].errorSum = 0;
 		g_targetEncoder[0] = 0;
@@ -425,7 +425,7 @@ __weak void timer_10ms(void)
 	{
 		g_targetEncoder[0] = g_targetEncoderSave[0];
 	}
-	if(abs(g_targetAngle[3] - g_nowAngle[3]) > 5)
+	if(abs(g_targetAngle[3] - g_nowAngle[3]) > 30)
 	{
 		motor[2].errorSum = 0;
 		g_targetEncoder[2] = 0;
