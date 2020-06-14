@@ -220,7 +220,7 @@ void run(void) {
 
 
 
-
+/*
 		uint8_t deb[20] = {0,};
 		stateMachineTask_ST send = {0,};
 		send.cmd1 = 0x3000;
@@ -239,7 +239,7 @@ void run(void) {
 		int size = g_stateMachines.send_task(0, send, psend);
 		__usart2.write(psend, size);
 		free(send.data);
-		free(psend);
+		free(psend);*/
 		pasttick = nowtick;
 	}
 
@@ -377,6 +377,54 @@ void target_angle_filter(void)
  * */
 uint32_t pp = 0;
 uint32_t ppp = 0;
+int sendAngle = 0;
+int sendSpeed = 0;
+void sendState(void)
+{
+	//velocity
+	//angle
+	uint8_t deb[20] = { 0, };
+	stateMachineTask_ST send = { 0, };
+	send.cmd1 = 0x4000;
+	send.cmd2 = 0x0000;
+	send.length = 16;
+	send.data = (uint8_t*) malloc(sizeof(uint8_t) * send.length);
+	send.checksum = 0;
+	sendAngle = (int)g_nowAngle[1];
+	sendSpeed = (int)((float)g_deltaEncoder[0] * 0.471 / 1064.0 / 0.02 * 100.0);
+	send.data[0] = sendAngle;
+	send.data[1] = sendAngle >> 8;
+	send.data[2] = sendAngle >> 16;
+	send.data[3] = sendAngle >> 24;
+	send.data[4] = sendSpeed;
+	send.data[5] = sendSpeed >> 8;
+	send.data[6] = sendSpeed >> 16;
+	send.data[7] = sendSpeed >> 24;
+	sendAngle = (int)g_nowAngle[3];
+	sendSpeed = (int)((float)g_deltaEncoder[2] * 0.471 / 1064.0 / 0.02 * 100.0);
+	send.data[8] = sendAngle;
+	send.data[9] = sendAngle >> 8;
+	send.data[10] = sendAngle >> 16;
+	send.data[11] = sendAngle >> 24;
+	send.data[12] = sendSpeed;
+	send.data[13] = sendSpeed >> 8;
+	send.data[14] = sendSpeed >> 16;
+	send.data[15] = sendSpeed >> 24;
+
+	for (int i = 0; i < send.length; i++) {
+		send.checksum += send.data[i];
+	}
+	uint8_t *psend;
+	psend = (uint8_t *) malloc(sizeof(uint8_t) * 100);
+
+	int size = g_stateMachines.send_task(0, send, psend);
+	__usart2.write(psend, size);
+	free(send.data);
+	free(psend);
+}
+
+
+
 __weak void timer_1s(void)
 {
 	//TODO
@@ -413,6 +461,7 @@ __weak void timer_10ms(void)
 	// 1404 * 4 = 1바퀴
 	g_nowAngle[1] = (long)((float)g_deltaEncoderCnt[1] / (1820.0 * 3.0) * 360.0);
 	g_nowAngle[3] = (long)((float)g_deltaEncoderCnt[3] / (1820.0 * 3.0) * 360.0);
+
 
 
 
@@ -464,7 +513,7 @@ __weak void timer_10ms(void)
 	TIM3->CNT = 0;
 	TIM4->CNT = 0;
 
-
+	sendState();
 
 	//uint32_t targetTimer[4] = {TIM5,TIM8,TIM3,TIM4};
 	for(int i = 0 ; i < 4; i++)

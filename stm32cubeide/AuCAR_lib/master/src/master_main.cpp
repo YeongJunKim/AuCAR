@@ -36,6 +36,7 @@
 #include "sensor_msgs/Imu.h"
 #include "geometry_msgs/Twist.h"
 #include "geometry_msgs/Vector3.h"
+#include "nav_msgs/Odometry.h"
 
 #define DEBUG
 
@@ -60,6 +61,10 @@ std_msgs::String str_dbgmsg;
 std_msgs::Header str_header;
 geometry_msgs::Vector3 topic_euler;
 geometry_msgs::Vector3 topic_acceleration;
+geometry_msgs::Vector3 topic_module0_state;
+geometry_msgs::Vector3 topic_module1_state;
+geometry_msgs::Vector3 topic_module2_state;
+geometry_msgs::Vector3 topic_module3_state;
 sensor_msgs::Imu topic_imu;
 
 ros::Publisher pub_chat("AuCAR/chatter", &str_msg);
@@ -69,6 +74,12 @@ ros::Publisher pub_debub("AuCAR/debug", &str_dbgmsg);
 ros::Publisher pub_header("AuCAR/header", &str_header);
 /* imu euler angle */
 ros::Publisher pub_euler("AuCAR/euler", &topic_euler);
+/* module data */
+ros::Publisher pub_module0_state("AuCAR/module0state", &topic_module0_state);
+ros::Publisher pub_module1_state("AuCAR/module1state", &topic_module1_state);
+ros::Publisher pub_module2_state("AuCAR/module2state", &topic_module2_state);
+ros::Publisher pub_module3_state("AuCAR/module3state", &topic_module3_state);
+
 /* imu acc */
 ros::Publisher pub_accleration("AuCAR/acceleration", &topic_acceleration);
 /* imu message */
@@ -106,6 +117,7 @@ ros::Subscriber<geometry_msgs::Twist> module1_sub("AuCAR/module1", &module1_cb);
 ros::Subscriber<geometry_msgs::Twist> module2_sub("AuCAR/module2", &module2_cb);
 ros::Subscriber<geometry_msgs::Twist> module3_sub("AuCAR/module3", &module3_cb);
 
+/*
 ros::Subscriber<geometry_msgs::Twist> motor0_sub("AuCAR/motor_0", &motor0_cb);
 ros::Subscriber<geometry_msgs::Twist> motor1_sub("AuCAR/motor_1", &motor1_cb);
 ros::Subscriber<geometry_msgs::Twist> motor2_sub("AuCAR/motor_2", &motor2_cb);
@@ -115,7 +127,7 @@ ros::Subscriber<geometry_msgs::Twist> motor4_sub("AuCAR/motor_4", &motor4_cb);
 ros::Subscriber<geometry_msgs::Twist> motor5_sub("AuCAR/motor_5", &motor5_cb);
 ros::Subscriber<geometry_msgs::Twist> motor6_sub("AuCAR/motor_6", &motor6_cb);
 ros::Subscriber<geometry_msgs::Twist> motor7_sub("AuCAR/motor_7", &motor7_cb);
-
+*/
 ros::Subscriber<geometry_msgs::Vector3> yaw_sub("AuCAR/yaw", &yaw_cb);
 
 
@@ -168,7 +180,10 @@ StateMachine g_stateMachines;
 
 BUGCATCHER debug = {0,};
 
-
+int getAngle[4] = {0,};
+int getSpeed[4] = {0,};
+int g_getAngle[4] = {0,};
+int g_getSpeed[4] = {0,};
 int __printf__io__putchar(int ch)
 {
 	uint8_t data = ch;
@@ -183,17 +198,22 @@ void init(void) {
 	/* ros init */
 
 	nh.initNode();
-	nh.advertise(pub_chat);
+	//nh.advertise(pub_chat);
 	nh.advertise(pub_header);
 	nh.advertise(pub_debub);
 	nh.advertise(pub_euler);
-	nh.advertise(pub_accleration);
+	//nh.advertise(pub_accleration);
+	nh.advertise(pub_module0_state);
+	nh.advertise(pub_module1_state);
+	nh.advertise(pub_module2_state);
+	nh.advertise(pub_module3_state);
 
 	nh.subscribe(module0_sub);
 	nh.subscribe(module1_sub);
 	nh.subscribe(module2_sub);
 	nh.subscribe(module3_sub);
 
+	/*
 	nh.subscribe(motor0_sub);
 	nh.subscribe(motor1_sub);
 	nh.subscribe(motor2_sub);
@@ -203,7 +223,7 @@ void init(void) {
 	nh.subscribe(motor5_sub);
 	nh.subscribe(motor6_sub);
 	nh.subscribe(motor7_sub);
-
+*/
 	nh.subscribe(yaw_sub);
 
 	_DEBUG("ROS init OK.\r\n");
@@ -274,6 +294,7 @@ uint32_t rospasttick = 0;
 
 uint8_t abc = 0;
 uint8_t cba = 0;
+
 
 void run(void) {
 
@@ -404,7 +425,7 @@ void run(void) {
 	 * frame -> queue -> usart
 	 * */
 	stateMachineTask_ST get = { 0, };
-	g_stateMachines.run();
+
 	BOOL state = g_stateMachines.get_task(0, &get);
 	if (state == true) {
 #ifdef DEBUG
@@ -418,14 +439,27 @@ void run(void) {
 		str_dbgmsg.data = c_addr;
 		pub_debub.publish(&str_dbgmsg);
 #endif
-		int getAngle1 = get.data[0];
-		getAngle1 |= get.data[1] << 8;
-		getAngle1 |= get.data[2] << 16;
-		getAngle1 |= get.data[3] << 24;
-		int getAngle3 = get.data[4];
-		getAngle3 |= get.data[5];
-		getAngle3 |= get.data[6];
-		getAngle3 |= get.data[7];
+		getAngle[0] = get.data[0];
+		getAngle[0] |= get.data[1] << 8;
+		getAngle[0] |= get.data[2] << 16;
+		getAngle[0] |= get.data[3] << 24;
+		getSpeed[0] = get.data[4];
+		getSpeed[0] |= get.data[5] << 8;
+		getSpeed[0] |= get.data[6] << 16;
+		getSpeed[0] |= get.data[7] << 24;
+		getAngle[1] = get.data[8];
+		getAngle[1] |= get.data[9] << 8;
+		getAngle[1] |= get.data[10] << 16;
+		getAngle[1] |= get.data[11] << 24;
+		getSpeed[1] = get.data[12];
+		getSpeed[1] |= get.data[13] << 8;
+		getSpeed[1] |= get.data[14] << 16;
+		getSpeed[1] |= get.data[15] << 24;
+
+		g_getAngle[0] = getAngle[0];
+		g_getAngle[1] = getAngle[1];
+		g_getSpeed[0] = getSpeed[0];
+		g_getSpeed[1] = getSpeed[1];
 		free(get.data);
 	}
 
@@ -442,14 +476,27 @@ void run(void) {
 		str_dbgmsg.data = c_addr;
 		pub_debub.publish(&str_dbgmsg);
 #endif
-		int getAngle1 = get.data[0];
-		getAngle1 |= get.data[1] << 8;
-		getAngle1 |= get.data[2] << 16;
-		getAngle1 |= get.data[3] << 24;
-		int getAngle3 = get.data[4];
-		getAngle3 |= get.data[5];
-		getAngle3 |= get.data[6];
-		getAngle3 |= get.data[7];
+		getAngle[2] = get.data[0];
+		getAngle[2] |= get.data[1] << 8;
+		getAngle[2] |= get.data[2] << 16;
+		getAngle[2] |= get.data[3] << 24;
+		getSpeed[2] = get.data[4];
+		getSpeed[2] |= get.data[5] << 8;
+		getSpeed[2] |= get.data[6] << 16;
+		getSpeed[2] |= get.data[7] << 24;
+		getAngle[3] = get.data[8];
+		getAngle[3] |= get.data[9] << 8;
+		getAngle[3] |= get.data[10] << 16;
+		getAngle[3] |= get.data[11] << 24;
+		getSpeed[3] = get.data[12];
+		getSpeed[3] |= get.data[13] << 8;
+		getSpeed[3] |= get.data[14] << 16;
+		getSpeed[3] |= get.data[15] << 24;
+
+		g_getAngle[2] = getAngle[2];
+		g_getAngle[3] = getAngle[3];
+		g_getSpeed[2] = getSpeed[2];
+		g_getSpeed[3] = getSpeed[3];
 		free(get.data);
 	}
 
@@ -461,31 +508,35 @@ void run(void) {
 	/*
 	 * ROS task
 	 * */
+
+	topic_module0_state.x = (float)g_getSpeed[0];
+	topic_module1_state.x = (float)g_getSpeed[1];
+	topic_module2_state.x = (float)g_getSpeed[2];
+	topic_module3_state.x = (float)g_getSpeed[3];
+	topic_module0_state.y = 0;
+	topic_module1_state.y = 0;
+	topic_module2_state.y = 0;
+	topic_module3_state.y = 0;
+	topic_module0_state.z = (float)g_getAngle[0];
+	topic_module1_state.z = (float)g_getAngle[1];
+	topic_module2_state.z = (float)g_getAngle[2];
+	topic_module3_state.z = (float)g_getAngle[3];
 	rosnowtick = HAL_GetTick();
 	if(rosnowtick - rospasttick > 100)
 	{
-		str_msg.data = hello;
+		//str_msg.data = hello;
 		str_header.seq++;
 		topic_euler.x = ahrs_obj.e_roll;
 		topic_euler.y = ahrs_obj.e_pitch;
 		topic_euler.z = ahrs_obj.e_yaw;
 
-		topic_acceleration.x = ahrs_obj.a_x;
-		topic_acceleration.y = ahrs_obj.a_y;
-		topic_acceleration.z = ahrs_obj.a_z;
-
-//		char imu_link[] = "imu_link";
-//		topic_imu.header.seq++;
-//		topic_imu.header.frame_id = imu_link;
-//		topic_imu.linear_acceleration.x = ahrs_obj.a_x;
-//		topic_imu.linear_acceleration.y = ahrs_obj.a_y;
-//		topic_imu.linear_acceleration.z = ahrs_obj.a_z;
-
-
+		pub_module0_state.publish(&topic_module0_state);
+		pub_module1_state.publish(&topic_module1_state);
+		pub_module2_state.publish(&topic_module2_state);
+		pub_module3_state.publish(&topic_module3_state);
 		pub_header.publish(&str_header);
-		pub_chat.publish(&str_msg);
 		pub_euler.publish(&topic_euler);
-		pub_accleration.publish(&topic_acceleration);
+
 
 //		pub_imu.publish(&topic_imu);
 		rospasttick = rosnowtick;
