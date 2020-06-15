@@ -434,10 +434,10 @@ void run(void) {
 		char c_addr[10];
 		itoa(nowtick, c_tick, 10);
 		itoa((int)get.data, c_addr, 16);
-		str_dbgmsg.data = strcat(c_tick, dbgmsg);
-		pub_debub.publish(&str_dbgmsg);
-		str_dbgmsg.data = c_addr;
-		pub_debub.publish(&str_dbgmsg);
+//		str_dbgmsg.data = strcat(c_tick, dbgmsg);
+//		pub_debub.publish(&str_dbgmsg);
+//		str_dbgmsg.data = c_addr;
+//		pub_debub.publish(&str_dbgmsg);
 #endif
 		getAngle[0] = get.data[0];
 		getAngle[0] |= get.data[1] << 8;
@@ -471,10 +471,10 @@ void run(void) {
 		char c_addr[10];
 		itoa(nowtick, c_tick, 10);
 		itoa((int)get.data, c_addr, 16);
-		str_dbgmsg.data = strcat(c_tick, dbgmsg);
-		pub_debub.publish(&str_dbgmsg);
-		str_dbgmsg.data = c_addr;
-		pub_debub.publish(&str_dbgmsg);
+//		str_dbgmsg.data = strcat(c_tick, dbgmsg);
+//		pub_debub.publish(&str_dbgmsg);
+//		str_dbgmsg.data = c_addr;
+//		pub_debub.publish(&str_dbgmsg);
 #endif
 		getAngle[2] = get.data[0];
 		getAngle[2] |= get.data[1] << 8;
