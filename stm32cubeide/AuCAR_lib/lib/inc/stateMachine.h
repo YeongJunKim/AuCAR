@@ -96,6 +96,7 @@ typedef struct _stateMachineTask{
 	uint16_t cmd2;
 	uint16_t length;
 	uint8_t *data;
+	uint8_t checksum;
 }stateMachineTask_ST;
 
 
@@ -151,8 +152,7 @@ public:
 public:
 	void add_task(int index);
 	BOOL get_task(int index, stateMachineTask_ST *task);
-
-	void send_task(int index, stateMachineTask_ST task);
+	int send_task(int index, stateMachineTask_ST task, uint8_t *psend);
 
 public:
 

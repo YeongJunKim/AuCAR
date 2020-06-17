@@ -22,6 +22,7 @@
 
 #include "AuCAR.h"
 #include "absoluteEncoder.h"
+#include "stdlib.h"
 
 #if LOCAL_DEVICE == C1
 /* PeriphGPIO(MODULE, PIN, Period) */
@@ -113,8 +114,10 @@ void init(void) {
 	_DEBUG("Usart init OK.\r\n");
 
 
-	for(int i = 0 ; i < 4; i++)
-		PID_Control_Long_Initialize(&motor[i]);
+		PID_Control_Long_Initialize(&motor[0]);
+		PID_Control_Long_Initialize2(&motor[2]);
+		PID_Control_Long_Initialize(&motor[1]);
+		PID_Control_Long_Initialize2(&motor[3]);
 	for(int i = 0; i < 4; i ++)
 		PID_Control_Long_Initialize_angle(&angle[i]);
 	_DEBUG("PID init OK.\r\n");
@@ -185,6 +188,61 @@ void run(void) {
 //
 //	}
 
+	nowtick = HAL_GetTick();
+	if(nowtick - pasttick > 100)
+	{
+		uint16_t cmd1 = 0x3000;
+		uint16_t cmd2 = 0x0000;
+		uint16_t len = 8;
+
+		uint8_t arr[2+2+2+2+8+1] = {0,};
+		arr[0] = 0xFF;
+		arr[1] = 0xFF;
+		arr[2] = cmd1;
+		arr[3] = cmd1 >> 8;
+		arr[4] = cmd2;
+		arr[5] = cmd2 >> 8;
+		arr[6] = len;
+		arr[7] = len >> 8;
+//		g_nowAngle[1] = 10;
+//		g_nowAngle[3] = 250;
+		arr[8] = ((int)g_nowAngle[1]);
+		arr[9] = ((int)g_nowAngle[1]) >> 8;
+		arr[10] = ((int)g_nowAngle[1]) >> 16;
+		arr[11] = ((int)g_nowAngle[1]) >> 24;
+		arr[12] = ((int)g_nowAngle[3]);
+		arr[13] = ((int)g_nowAngle[3]) >> 8;
+		arr[14] = ((int)g_nowAngle[3]) >> 16;
+		arr[15] = ((int)g_nowAngle[3]) >> 24;
+		for(int i =0; i < 8 ; i++)
+			arr[16] += arr[8+i];
+//		__usart2.write(arr, 17);
+
+
+
+/*
+		uint8_t deb[20] = {0,};
+		stateMachineTask_ST send = {0,};
+		send.cmd1 = 0x3000;
+		send.cmd2 = 0x0000;
+		send.length = 8;
+		send.data = (uint8_t*)malloc(sizeof(uint8_t) * send.length);
+		send.checksum = 0;
+		for(int i = 0; i < send.length; i ++)
+		{
+			send.data[i] = i;
+			send.checksum += send.data[i];
+		}
+		uint8_t *psend;
+		psend = (uint8_t *)malloc(sizeof(uint8_t) * 100);
+
+		int size = g_stateMachines.send_task(0, send, psend);
+		__usart2.write(psend, size);
+		free(send.data);
+		free(psend);*/
+		pasttick = nowtick;
+	}
+
 
 	/* test sender end */
 
@@ -208,7 +266,10 @@ void run(void) {
 	if(state == true)
 	{
 		task_run(TYPE_MOTOR, get);
+
+		free(get.data);
 	}
+
 
 	/*
 	 * enqueue data
@@ -278,24 +339,34 @@ void task_run(control_type type, stateMachineTask_ST task)
 
 void target_angle_filter(void)
 {
-	if(g_targetAngle[1] < 0 || g_targetAngle[1] > 360)
-	{
-		g_targetAngle[1] = 0;
-	}
-	if(g_targetAngle[1] > 180 && g_targetAngle[1] <= 360)
-	{
-		g_targetAngle[1] = g_targetAngle[1] - 180;
-		g_targetEncoder[0] = -g_targetEncoder[0];
-	}
-	if(g_targetAngle[3] < 0 || g_targetAngle[3] > 360)
-	{
-		g_targetAngle[3] = 0;
-	}
-	if(g_targetAngle[3] > 180 && g_targetAngle[3] <= 360)
-	{
-		g_targetAngle[3] = g_targetAngle[3] - 180;
-		g_targetEncoder[2] = -g_targetEncoder[2];
-	}
+//	if(g_targetAngle[1] < 0 || g_targetAngle[1] > 360)
+//	{
+//		g_targetAngle[1] = 0;
+//	}
+//	if(g_targetAngle[1] > 180 && g_targetAngle[1] <= 360)
+//	{
+//		g_targetAngle[1] = g_targetAngle[1] - 180;
+//		g_targetEncoder[0] = -g_targetEncoder[0];
+//	}
+//	if(g_targetAngle[3] < 0 || g_targetAngle[3] > 360)
+//	{
+//		g_targetAngle[3] = 0;
+//	}
+//	if(g_targetAngle[3] > 180 && g_targetAngle[3] <= 360)
+//	{
+//		g_targetAngle[3] = g_targetAngle[3] - 180;
+//		g_targetEncoder[2] = -g_targetEncoder[2];
+//	}
+//	g_targetEncoderSave[0] = g_targetEncoder[0];
+//	g_targetEncoderSave[2] = g_targetEncoder[2];
+	if(g_targetAngle[1] < -180)
+		g_targetAngle[1] = -180;
+	if(g_targetAngle[1] > 180)
+		g_targetAngle[1] = 180;
+	if(g_targetAngle[3] < -180)
+		g_targetAngle[3] = -180;
+	if(g_targetAngle[3] > 180)
+		g_targetAngle[3] = 180;
 	g_targetEncoderSave[0] = g_targetEncoder[0];
 	g_targetEncoderSave[2] = g_targetEncoder[2];
 }
@@ -306,6 +377,54 @@ void target_angle_filter(void)
  * */
 uint32_t pp = 0;
 uint32_t ppp = 0;
+int sendAngle = 0;
+int sendSpeed = 0;
+void sendState(void)
+{
+	//velocity
+	//angle
+	uint8_t deb[20] = { 0, };
+	stateMachineTask_ST send = { 0, };
+	send.cmd1 = 0x4000;
+	send.cmd2 = 0x0000;
+	send.length = 16;
+	send.data = (uint8_t*) malloc(sizeof(uint8_t) * send.length);
+	send.checksum = 0;
+	sendAngle = (int)g_nowAngle[1];
+	sendSpeed = (int)((float)g_deltaEncoder[0] * 0.471 / 1064.0 / 0.02 * 100.0);
+	send.data[0] = sendAngle;
+	send.data[1] = sendAngle >> 8;
+	send.data[2] = sendAngle >> 16;
+	send.data[3] = sendAngle >> 24;
+	send.data[4] = sendSpeed;
+	send.data[5] = sendSpeed >> 8;
+	send.data[6] = sendSpeed >> 16;
+	send.data[7] = sendSpeed >> 24;
+	sendAngle = (int)g_nowAngle[3];
+	sendSpeed = (int)((float)g_deltaEncoder[2] * 0.471 / 1064.0 / 0.02 * 100.0);
+	send.data[8] = sendAngle;
+	send.data[9] = sendAngle >> 8;
+	send.data[10] = sendAngle >> 16;
+	send.data[11] = sendAngle >> 24;
+	send.data[12] = sendSpeed;
+	send.data[13] = sendSpeed >> 8;
+	send.data[14] = sendSpeed >> 16;
+	send.data[15] = sendSpeed >> 24;
+
+	for (int i = 0; i < send.length; i++) {
+		send.checksum += send.data[i];
+	}
+	uint8_t *psend;
+	psend = (uint8_t *) malloc(sizeof(uint8_t) * 100);
+
+	int size = g_stateMachines.send_task(0, send, psend);
+	__usart2.write(psend, size);
+	free(send.data);
+	free(psend);
+}
+
+
+
 __weak void timer_1s(void)
 {
 	//TODO
@@ -345,7 +464,8 @@ __weak void timer_10ms(void)
 
 
 
-	if(abs(g_targetAngle[1] - g_nowAngle[1]) > 5)
+
+	if(abs(g_targetAngle[1] - g_nowAngle[1]) > 30)
 	{
 		motor[0].errorSum = 0;
 		g_targetEncoder[0] = 0;
@@ -354,7 +474,7 @@ __weak void timer_10ms(void)
 	{
 		g_targetEncoder[0] = g_targetEncoderSave[0];
 	}
-	if(abs(g_targetAngle[3] - g_nowAngle[3]) > 5)
+	if(abs(g_targetAngle[3] - g_nowAngle[3]) > 30)
 	{
 		motor[2].errorSum = 0;
 		g_targetEncoder[2] = 0;
@@ -393,7 +513,7 @@ __weak void timer_10ms(void)
 	TIM3->CNT = 0;
 	TIM4->CNT = 0;
 
-
+	sendState();
 
 	//uint32_t targetTimer[4] = {TIM5,TIM8,TIM3,TIM4};
 	for(int i = 0 ; i < 4; i++)

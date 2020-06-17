@@ -62,17 +62,7 @@ void StateMachine::run(void) {
 	{
 
 	}
-	stateMachineTask_ST temp;
-	temp.cmd1 = 2;
-	temp.cmd2 = 30;
-	temp.length = 10;
-	temp.data = (uint8_t*)malloc(sizeof(uint8_t)*10);
-	for(int i = 0 ; i < 10; i++)
-	{
-		temp.data[i] = i;
-	}
-	send_task(0, temp);
-	free(temp.data);
+
 }
 
 void StateMachine::machine(int index, uint8_t data)
@@ -144,7 +134,7 @@ void StateMachine::machine(int index, uint8_t data)
 			//correct//
 			g_counters.stateMachineCpltCounter[index]++;
 
-		}
+
 		uint8_t data[100] = {0,};
 		for(uint16_t i = 0 ; i < sizeof(data); i++)
 			data[i] = str->data[i];
@@ -152,6 +142,7 @@ void StateMachine::machine(int index, uint8_t data)
 		add_task(index);
 
 		free(str->data);
+		}
 		//end task//
 		str->checksum = 0x00;
 		str->state = 0x00;
@@ -190,37 +181,33 @@ void StateMachine::add_task(int index)
 }
 BOOL StateMachine::get_task(int index, stateMachineTask_ST *task)
 {
-	if(index >= MACHINE_MAX_SIZE || index < 0)
+	if (index >= MACHINE_MAX_SIZE || index < 0)
 		return -1;
 	return task_dequeue(index, task);
 }
-void StateMachine::send_task(int index, stateMachineTask_ST task)
-{
+int StateMachine::send_task(int index, stateMachineTask_ST task,
+		uint8_t *psend) {
 	std::vector<uint8_t> sendvector;
 	uint8_t checksum = 0;
-
-	sendvector.push_back(task.cmd1);
-	sendvector.push_back(task.cmd1>>8);
-	sendvector.push_back(task.cmd2);
-	sendvector.push_back(task.cmd2>>8);
-	sendvector.push_back(task.length);
-	sendvector.push_back(task.length>>8);
-	for(int i = 0 ; i < task.length; i++){
+	sendvector.push_back(0xFF);
+	sendvector.push_back(0xFF);
+	sendvector.push_back((uint8_t) task.cmd1);
+	sendvector.push_back((uint8_t) (task.cmd1 >> 8));
+	sendvector.push_back((uint8_t) task.cmd2);
+	sendvector.push_back((uint8_t) (task.cmd2 >> 8));
+	sendvector.push_back((uint8_t) task.length);
+	sendvector.push_back((uint8_t) (task.length >> 8));
+	for (int i = 0; i < task.length; i++) {
 		sendvector.push_back(task.data[i]);
-		checksum+=task.data[i];
+		checksum += task.data[i];
 	}
 	sendvector.push_back(checksum);
 
-	uint8_t *sendData;
-
-	sendData = (uint8_t*)malloc(sizeof(uint8_t)*sendvector.size());
-
-	for(uint32_t i = 0 ; i < sendvector.size(); i++)
-	{
-		sendData[i] = sendvector.at(i);
+	uint16_t size = sendvector.size();
+	for (int i = 0; i < size; i++) {
+		psend[i] = sendvector.at(i);
 	}
-
-	free(sendData);
+	return size;
 }
 
 

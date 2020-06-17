@@ -1,40 +1,37 @@
 /* USER CODE BEGIN Header */
 /**
-  ******************************************************************************
-  * @file           : main.c
-  * @brief          : Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2019 STMicroelectronics.
-  * All rights reserved.</center></h2>
-  *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
-  *
-  ******************************************************************************
-  */
+ ******************************************************************************
+ * @file           : main.c
+ * @brief          : Main program body
+ ******************************************************************************
+ * @attention
+ *
+ * <h2><center>&copy; Copyright (c) 2020 STMicroelectronics.
+ * All rights reserved.</center></h2>
+ *
+ * This software component is licensed by ST under BSD 3-Clause license,
+ * the "License"; You may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at:
+ *                        opensource.org/licenses/BSD-3-Clause
+ *
+ ******************************************************************************
+ */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "can.h"
-#include "dma.h"
-#include "tim.h"
-#include "usart.h"
-#include "usb_device.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "master_main.h"
+#include "MW-AHRSv1.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+void mw_ahrsv1_init(void);
+void mw_trans_init(void);
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -50,8 +47,12 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-extern uint8_t UserRxBufferFS[APP_RX_DATA_SIZE];
-extern uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
+extern CAN_HandleTypeDef hcan1;
+CAN_TxHeaderTypeDef can_tx_hedder = { 0, };
+CAN_RxHeaderTypeDef can_rx_hedder = { 0, };
+uint8_t can_tx_data[8] = { 0, };
+uint8_t can_rx_data[8] = { 0, };
+MW_AHRS ahrs_obj;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -62,12 +63,6 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-int __io_putchar(int ch)
-{
-	//__usart2.write((uint8_t*)ch, 1);
-	__printf__io__putchar(ch);
-	return ch;
-}
 
 /* USER CODE END 0 */
 
@@ -85,7 +80,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-   HAL_Init();
+  HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -100,35 +95,36 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_CAN1_Init();
-  MX_UART4_Init();
-  MX_USART1_UART_Init();
-  MX_USART2_UART_Init();
-  MX_USART3_UART_Init();
-  MX_USART6_UART_Init();
-  MX_TIM6_Init();
-  MX_TIM7_Init();
-  MX_USB_DEVICE_Init();
-  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
-  init();
+	uint32_t nowTick = 0;
+	uint32_t pastTick = 0;
+	mw_ahrsv1_init();
 
+	HAL_CAN_ActivateNotification(&hcan1,
+			CAN_IT_TX_MAILBOX_EMPTY | CAN_IT_RX_FIFO0_MSG_PENDING | CAN_IT_RX_FIFO0_FULL);
+	HAL_CAN_Start(&hcan1);
+
+	mw_trans_init();
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
+	while (1) {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  run();
-
-
-  }
+		nowTick = HAL_GetTick();
+		if (nowTick - pastTick > 1000)
+		{
+			//mw_trans_init();
+			//mw_trans_init();
+			//mw_trans_init();
+			pastTick = nowTick;
+		}
+	}
   /* USER CODE END 3 */
 }
 
@@ -140,12 +136,11 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
   /** Configure the main internal regulator output voltage 
   */
   __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
   /** Initializes the CPU, AHB and APB busses clocks 
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
@@ -153,11 +148,17 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 8;
-  RCC_OscInitStruct.PLL.PLLN = 128;
+  RCC_OscInitStruct.PLL.PLLN = 180;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 7;
+  RCC_OscInitStruct.PLL.PLLQ = 2;
   RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /** Activate the Over-Drive mode 
+  */
+  if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
@@ -170,18 +171,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_CLK48;
-  PeriphClkInitStruct.PLLSAI.PLLSAIM = 16;
-  PeriphClkInitStruct.PLLSAI.PLLSAIN = 192;
-  PeriphClkInitStruct.PLLSAI.PLLSAIQ = 2;
-  PeriphClkInitStruct.PLLSAI.PLLSAIP = RCC_PLLSAIP_DIV4;
-  PeriphClkInitStruct.PLLSAIDivQ = 1;
-  PeriphClkInitStruct.Clk48ClockSelection = RCC_CLK48CLKSOURCE_PLLSAIP;
-  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
     Error_Handler();
   }
@@ -189,6 +179,85 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 
+uint32_t canTxMailBox;
+void mw_ahrsv1_init(void) {
+
+	CAN_FilterTypeDef canFilter;
+	canFilter.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+	canFilter.FilterMode = CAN_FILTERMODE_IDMASK;
+	canFilter.FilterScale = CAN_FILTERSCALE_32BIT;
+	canFilter.FilterIdHigh = 0x0000 << 5;
+	canFilter.FilterIdLow = 0x0000;
+	canFilter.FilterMaskIdHigh = 0x0000 << 5;
+	canFilter.FilterMaskIdLow = 0x0000;
+	canFilter.SlaveStartFilterBank = 0;
+	canFilter.FilterBank = 0;
+	canFilter.FilterActivation = CAN_FILTER_ENABLE;
+
+	if(HAL_CAN_ConfigFilter(&hcan1, &canFilter) != HAL_OK)
+	{
+		Error_Handler();
+	}
+}
+
+void mw_trans_init(void)
+{
+	can_tx_hedder.StdId = 0x01;
+	can_tx_hedder.ExtId = 0x01;
+	can_tx_hedder.RTR = CAN_RTR_DATA;
+	can_tx_hedder.IDE = CAN_ID_STD;
+	can_tx_hedder.DLC = 8;
+
+
+
+	mw_ahrs_set_period(&ahrs_obj, 1);
+	mw_ahrs_set_data_type(&ahrs_obj, 1, 1, 1, 1);
+	for(int i=0; i<8; i++)
+	{
+	can_tx_data[i] = ahrs_obj.can_write_data[i];
+	}
+	if (HAL_CAN_AddTxMessage(&hcan1, &can_tx_hedder, can_tx_data, &canTxMailBox)
+			!= HAL_OK) {
+		Error_Handler();
+	}
+}
+
+uint32_t canTxCallback = 0;
+uint32_t canRxCallback = 0;
+uint32_t canRxFullCallback = 0;
+uint32_t canErrorCallback = 0;
+void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef *hcan) {
+	if (hcan->Instance == CAN1) {
+		canTxCallback++;
+	}
+}
+
+
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
+	if (hcan->Instance == CAN1) {
+		canRxCallback++;
+		HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &can_rx_hedder, can_rx_data);
+		for (int i = 0; i < 8; i++) {
+			ahrs_obj.can_read_data[i] = can_rx_data[i];
+		}
+		mw_ahrs_input_data(&ahrs_obj);
+
+	}
+}
+void HAL_CAN_RxFifo0FullCallback(CAN_HandleTypeDef *hcan) {
+	if (hcan->Instance == CAN1) {
+		canRxFullCallback++;
+	}
+}
+
+void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
+{
+
+	if(hcan->Instance == CAN1)
+	{
+		canErrorCallback++;
+	}
+}
 /* USER CODE END 4 */
 
 /**
@@ -198,7 +267,7 @@ void SystemClock_Config(void)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
+	/* User can add his own implementation to report the HAL error return state */
 
   /* USER CODE END Error_Handler_Debug */
 }

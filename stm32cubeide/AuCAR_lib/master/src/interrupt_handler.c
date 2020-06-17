@@ -91,3 +91,34 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		g_counters.usart6RxCounter++;
 	}
 }
+
+
+void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef *hcan) {
+	if (hcan->Instance == CAN1) {
+		g_counters.can1TxCounter++;
+		can_tx_callback(hcan);
+	}
+}
+
+
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
+	if (hcan->Instance == CAN1) {
+		g_counters.can1RxCounter++;
+		can_rx_callback(hcan);
+
+	}
+}
+
+void HAL_CAN_RxFifo0FullCallback(CAN_HandleTypeDef *hcan)
+{
+	if (hcan->Instance == CAN1) {
+		g_counters.can1RxFullCounter++;
+	}
+}
+
+void HAL_CAN_ErrorCallback(CAN_HandleTypeDef *hcan)
+{
+	if (hcan->Instance == CAN1) {
+		g_counters.can1ErrorCounter++;
+	}
+}
