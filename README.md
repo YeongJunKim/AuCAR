@@ -5,11 +5,11 @@
 ###### firmware ver : F4 1.24.1
 
 ## Operating Demo
-[![Video Label](https://img.youtube.com/vi/9Y53cECttos/0.jpg)](https://youtu.be/9Y53cECttos)
+[![Video Label](https://img.youtube.com/vi/9Y53cECttos/0.jpg)](https://youtu.be/9Y53cECttos) [link](https://youtu.be/9Y53cECttos)
 
-[![Video Label](https://img.youtube.com/vi/XymGiYHeFvs/0.jpg)](https://youtu.be/XymGiYHeFvs)
+[![Video Label](https://img.youtube.com/vi/XymGiYHeFvs/0.jpg)](https://youtu.be/XymGiYHeFvs) [link](https://youtu.be/XymGiYHeFvs)
 
-[![Video Label](https://img.youtube.com/vi/pwDq5S8F8LM/0.jpg)](https://youtu.be/pwDq5S8F8LM)
+[![Video Label](https://img.youtube.com/vi/pwDq5S8F8LM/0.jpg)](https://youtu.be/pwDq5S8F8LM) [link](https://youtu.be/pwDq5S8F8LM)
 ## I/O descriptions
 ![description](./image/description.png)
 
